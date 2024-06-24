@@ -2,6 +2,7 @@ import 'dart:ui';
 
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+import 'package:lottie/lottie.dart';
 import 'package:weather_app/models/weatherModel.dart';
 import 'package:weather_app/providers/weatherService.dart';
 
@@ -29,6 +30,31 @@ class _HomeState extends State<Home> {
     }
   }
 
+  String getWeatherAnimation(String? mainCondition) {
+    if (mainCondition == null) return 'assets/sunny.json';
+
+    switch (mainCondition.toLowerCase()) {
+      case 'clouds':
+      case 'mist':
+      case 'smoke':
+      case 'haze':
+      case 'dust':
+      case 'fog':
+        return 'assets/cloudy.json';
+      case 'rain':
+      case 'drizzle':
+        return 'assets/rainy.json';
+      case 'shower rain':
+        return 'assets/shower.json';
+      case 'thunderstorm':
+        return 'assets/thunder.json';
+      case 'clear':
+        return 'assets/sunny.json';
+      default:
+        return 'assets/sunny.json';
+    }
+  }
+
   @override
   void initState() {
     super.initState();
@@ -37,14 +63,15 @@ class _HomeState extends State<Home> {
 
   @override
   Widget build(BuildContext context) {
-    // DateTime now = DateTime.now();
-    // String formattedDate = DateFormat('kk:mm:ss \n EEE d MMM').format(now);
     var now = DateTime.now();
-    var formatterDate = DateFormat('kk:mm:ss \n EEE d MMM');
+    var formatterDate = DateFormat('EEE d MMM');
     var formatterTime = DateFormat('kk:mm');
     String actualDate = formatterDate.format(now);
     String actualTime = formatterTime.format(now);
     
+    if (_weather == null) {
+      return const Center(child: CircularProgressIndicator());
+    }
     return Scaffold(
       appBar: AppBar(
         leading: IconButton(
@@ -89,7 +116,7 @@ class _HomeState extends State<Home> {
                       children: [
                         Center(
                           child: Text(
-                            actualDate + " | " + actualTime,
+                            "$actualDate | $actualTime",
                             style: const TextStyle(fontSize: 20),
                           ),
                         ),
@@ -100,6 +127,13 @@ class _HomeState extends State<Home> {
                           child: Text(
                             "${_weather?.temperature.round()}°C",
                             style: const TextStyle(fontSize: 75, color: Colors.blue, fontWeight: FontWeight.bold),
+                          ),
+                        ),
+                        Lottie.asset(getWeatherAnimation(_weather?.mainCondition)),
+                        Center(
+                          child: Text(
+                            _weather?.mainCondition ?? "",
+                            style: const TextStyle(fontSize: 25, color: Colors.blue, fontWeight: FontWeight.bold),
                           ),
                         )
                       ],
