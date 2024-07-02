@@ -1,5 +1,4 @@
 import 'dart:ui';
-
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:lottie/lottie.dart';
@@ -68,83 +67,104 @@ class _HomeState extends State<Home> {
     var formatterTime = DateFormat('kk:mm');
     String actualDate = formatterDate.format(now);
     String actualTime = formatterTime.format(now);
-    
-    if (_weather == null) {
-      return const Center(child: CircularProgressIndicator());
-    }
+
     return Scaffold(
-      appBar: AppBar(
-        leading: IconButton(
-            onPressed: () {}, icon: const Icon(Icons.more_vert_outlined)),
-        title: Center(
-            child: Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            const Icon(Icons.location_on),
-            const SizedBox(
-              width: 7,
-            ),
-            Text(_weather?.cityName ?? "loading city..."),
+        appBar: AppBar(
+          leading: IconButton(
+              onPressed: () {}, icon: const Icon(Icons.more_vert_outlined)),
+          title: Center(
+              child: Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              const Icon(Icons.location_on),
+              const SizedBox(
+                width: 7,
+              ),
+              Text(_weather?.cityName ?? "loading city..."),
+            ],
+          )),
+          actions: [
+            IconButton(
+                onPressed: () {},
+                icon: const Icon(Icons.add_location_alt_outlined))
           ],
-        )),
-        actions: [
-          IconButton(
-              onPressed: () {},
-              icon: const Icon(Icons.add_location_alt_outlined))
-        ],
-      ),
-      body: Stack(
-        children: <Widget>[
-          ConstrainedBox(
-            constraints: const BoxConstraints.expand(),
-            child: const FlutterLogo()
-          ),
-          Center(
-            child: ClipRect(
-              child: BackdropFilter(
-                filter: ImageFilter.blur(sigmaX: 10.0, sigmaY: 10.0),
-                child: Container(
-                  width: 2000.0,
-                  height: 2000.0,
-                  decoration: BoxDecoration(
-                    color: Colors.grey.shade200.withOpacity(0.5)
-                  ),
-                  child: Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 20),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.center,
-                      children: [
-                        Center(
-                          child: Text(
-                            "$actualDate | $actualTime",
-                            style: const TextStyle(fontSize: 20),
+        ),
+        body: Stack(
+          children: <Widget>[
+            ConstrainedBox(
+                constraints: const BoxConstraints.expand(),
+                child: const FlutterLogo()),
+            Center(
+              child: ClipRect(
+                child: BackdropFilter(
+                  filter: ImageFilter.blur(sigmaX: 10.0, sigmaY: 10.0),
+                  child: Container(
+                    width: 2000.0,
+                    height: 2000.0,
+                    decoration: BoxDecoration(
+                        color: Colors.grey.shade200.withOpacity(0.5)),
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 20, vertical: 20),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.center,
+                        children: [
+                          Center(
+                            child: Text(
+                              "$actualDate | $actualTime",
+                              style: const TextStyle(fontSize: 20),
+                            ),
                           ),
-                        ),
-                        const SizedBox(
-                          height: 17,
-                        ),
-                        Center(
-                          child: Text(
-                            "${_weather?.temperature.round()}°C",
-                            style: const TextStyle(fontSize: 75, color: Colors.blue, fontWeight: FontWeight.bold),
+                          const SizedBox(
+                            height: 17,
                           ),
-                        ),
-                        Lottie.asset(getWeatherAnimation(_weather?.mainCondition)),
-                        Center(
-                          child: Text(
-                            _weather?.mainCondition ?? "",
-                            style: const TextStyle(fontSize: 25, color: Colors.blue, fontWeight: FontWeight.bold),
+                          Center(
+                            child: Text(
+                              "${_weather?.temperature.round()}°C",
+                              style: const TextStyle(
+                                  fontSize: 75,
+                                  color: Colors.blue,
+                                  fontWeight: FontWeight.bold),
+                            ),
                           ),
-                        )
-                      ],
+                          Lottie.asset(
+                              getWeatherAnimation(_weather?.mainCondition)),
+                          Center(
+                            child: Text(
+                              _weather?.mainCondition ?? "",
+                              style: const TextStyle(
+                                  fontSize: 25,
+                                  color: Colors.blue,
+                                  fontWeight: FontWeight.bold),
+                            ),
+                          ),
+                          const SizedBox(height: 60),
+                          Center(
+                            child: Text(
+                              "Humidity: ${_weather?.humidity}%",
+                              style: const TextStyle(fontSize: 20),
+                            ),
+                          ),
+                          Center(
+                            child: Text(
+                              "Pressure: ${_weather?.pressure}%",
+                              style: const TextStyle(fontSize: 20),
+                            ),
+                          ),
+                          Center(
+                            child: Text(
+                              "Wind Speed: ${_weather?.windSpeed} m/s",
+                              style: const TextStyle(fontSize: 20),
+                            ),
+                          ),
+                        ],
+                      ),
                     ),
                   ),
                 ),
               ),
             ),
-          ),
-        ],
-      )
-    );
+          ],
+        ));
   }
 }
