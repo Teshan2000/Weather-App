@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'package:geocoding/geocoding.dart';
 import 'package:geolocator/geolocator.dart';
+import 'package:weather_app/models/dailyWeatherModel.dart';
 import 'package:weather_app/models/weatherModel.dart';
 import 'package:http/http.dart' as http;
 
@@ -38,4 +39,17 @@ class WeatherService {
 
     return city ?? '';
   }
+
+  Future<List<DailyForecast>> getSevenDayForecast(String cityName) async {
+  final response = await http.get(
+    Uri.parse('$Base_URL/forecast/daily?q=$cityName&cnt=7&appid=$apiKey&units=metric'),
+  );
+
+  if (response.statusCode == 200) {
+    List<dynamic> dailyForecasts = jsonDecode(response.body)['list'];
+    return dailyForecasts.map((json) => DailyForecast.fromJson(json)).toList();
+  } else {
+    throw Exception('Failed to fetch 7-day forecast');
+  }
+}
 }
