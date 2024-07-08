@@ -1,24 +1,23 @@
 import 'dart:convert';
 import 'package:geocoding/geocoding.dart';
 import 'package:geolocator/geolocator.dart';
-import 'package:weather_app/models/dailyWeatherModel.dart';
-import 'package:weather_app/models/weatherModel.dart';
+import 'package:weather_app/models/forecastModel.dart';
 import 'package:http/http.dart' as http;
+import 'package:weather_app/models/weatherModel.dart';
 
 class WeatherService {
-  static const Base_URL = "http://api.openweathermap.org/data/2.5/weather";
+  static const Base_URL = "http://api.openweathermap.org/data/2.5";
   final String apiKey;
 
   WeatherService(this.apiKey);
 
   Future<Weather> getWeather(String cityName) async {
-    final response = await http
-        .get(Uri.parse('$Base_URL?q=$cityName&appid=$apiKey&units=metric'));
+    final response = await http.get(Uri.parse('$Base_URL/weather?q=$cityName&appid=$apiKey&units=metric'));
 
     if (response.statusCode == 200) {
       return Weather.fromJson(jsonDecode(response.body));
     } else {
-      throw Exception('Failed to weather data');
+      throw Exception('Failed to fetch weather data');
     }
   }
 
@@ -28,28 +27,32 @@ class WeatherService {
     if (permission == LocationPermission.denied) {
       permission = await Geolocator.requestPermission();
     }
-
-    Position position = await Geolocator.getCurrentPosition(
-        desiredAccuracy: LocationAccuracy.high);
-
-    List<Placemark> placemarks =
-        await placemarkFromCoordinates(position.latitude, position.longitude);
+    Position position = await Geolocator.getCurrentPosition(desiredAccuracy: LocationAccuracy.high);
+    List<Placemark> placemarks = await placemarkFromCoordinates(position.latitude, position.longitude);
 
     String? city = placemarks[0].locality;
-
     return city ?? '';
   }
 
-  Future<List<DailyForecast>> getSevenDayForecast(String cityName) async {
-  final response = await http.get(
-    Uri.parse('$Base_URL/forecast/daily?q=$cityName&cnt=7&appid=$apiKey&units=metric'),
-  );
+  Future<List<Forecast>> getFiveDayForecast(String cityName) async {
+    final response = await http.get(Uri.parse('$Base_URL/forecast?q=$cityName&appid=$apiKey&units=metric'));
 
-  if (response.statusCode == 200) {
-    List<dynamic> dailyForecasts = jsonDecode(response.body)['list'];
-    return dailyForecasts.map((json) => DailyForecast.fromJson(json)).toList();
-  } else {
-    throw Exception('Failed to fetch 7-day forecast');
+    if (response.statusCode == 200) {
+      List<dynamic> forecasts = jsonDecode(response.body)['list'];
+      List<Forecast> dailyForecasts = [];
+      DateTime? lastDate;
+
+      for (var forecast in forecasts) {
+        DateTime dateTime = DateTime.parse(forecast['dt_txt']);
+        if (lastDate == null || dateTime.day != lastDate.day) {
+          dailyForecasts.add(Forecast.fromJson(forecast));
+          lastDate = dateTime;
+        }
+      }
+
+      return dailyForecasts;
+    } else {
+      throw Exception('Failed to fetch 5-day forecast');
+    }
   }
-}
 }

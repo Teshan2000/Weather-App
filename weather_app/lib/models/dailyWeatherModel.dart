@@ -1,5 +1,5 @@
 class DailyForecast {
-  final String date;
+  final DateTime date;
   final double temperature;
   final String mainCondition;
 
@@ -11,9 +11,7 @@ class DailyForecast {
 
   factory DailyForecast.fromJson(Map<String, dynamic> json) {
     return DailyForecast(
-      date: DateTime.fromMillisecondsSinceEpoch(json['dt'] * 1000)
-          .toLocal()
-          .toString(),
+      date: DateTime.fromMillisecondsSinceEpoch(json['dt'] * 1000),
       temperature: json['temp']['day'].toDouble(),
       mainCondition: json['weather'][0]['main'],
     );
