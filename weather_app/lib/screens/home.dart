@@ -20,7 +20,6 @@ class _HomeState extends State<Home> {
 
   fetchWeather() async {
     String cityName = await _WeatherService.getCurrentCity();
-
     try {
       final weather = await _WeatherService.getWeather(cityName);
       final forecasts = await _WeatherService.getFiveDayForecast(cityName);
@@ -74,7 +73,8 @@ class _HomeState extends State<Home> {
 
     return Scaffold(
       appBar: AppBar(
-        leading: IconButton(onPressed: () {}, icon: const Icon(Icons.more_vert_outlined)),
+        leading: IconButton(
+            onPressed: () {}, icon: const Icon(Icons.more_vert_outlined)),
         title: Center(
           child: Row(
             mainAxisAlignment: MainAxisAlignment.center,
@@ -86,7 +86,9 @@ class _HomeState extends State<Home> {
           ),
         ),
         actions: [
-          IconButton(onPressed: () {}, icon: const Icon(Icons.add_location_alt_outlined))
+          IconButton(
+              onPressed: () {},
+              icon: const Icon(Icons.add_location_alt_outlined))
         ],
       ),
       body: Stack(
@@ -102,9 +104,11 @@ class _HomeState extends State<Home> {
                 child: Container(
                   width: 2000.0,
                   height: 2000.0,
-                  decoration: BoxDecoration(color: Colors.grey.shade200.withOpacity(0.5)),
+                  decoration: BoxDecoration(
+                      color: Colors.grey.shade200.withOpacity(0.5)),
                   child: Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 20),
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: 20, vertical: 20),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.center,
                       children: [
@@ -118,82 +122,175 @@ class _HomeState extends State<Home> {
                         Center(
                           child: Text(
                             "${_weather?.temperature.round()}°C",
-                            style: const TextStyle(fontSize: 75, color: Colors.blue, fontWeight: FontWeight.bold),
+                            style: const TextStyle(
+                                fontSize: 75,
+                                color: Colors.blue,
+                                fontWeight: FontWeight.bold),
                           ),
                         ),
-                        Lottie.asset(getWeatherAnimation(_weather?.mainCondition)),
+                        Lottie.asset(
+                            getWeatherAnimation(_weather?.mainCondition)),
                         Center(
                           child: Text(
                             _weather?.mainCondition ?? "",
-                            style: const TextStyle(fontSize: 25, color: Colors.blue, fontWeight: FontWeight.bold),
+                            style: const TextStyle(
+                                fontSize: 25,
+                                color: Colors.blue,
+                                fontWeight: FontWeight.bold),
                           ),
                         ),
-                        const SizedBox(height: 60),
-                        Center(
-                          child: Text(
-                            "Humidity: ${_weather?.humidity}%",
-                            style: const TextStyle(fontSize: 20),
+                        const SizedBox(height: 30),
+                        Container(
+                          width: 300,
+                          height: 160,
+                          decoration: ShapeDecoration(
+                            color: Colors.grey.shade200.withOpacity(0.5),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(15),
+                            ),
                           ),
-                        ),
-                        Center(
-                          child: Text(
-                            "Pressure: ${_weather?.pressure}%",
-                            style: const TextStyle(fontSize: 20),
-                          ),
-                        ),
-                        Center(
-                          child: Text(
-                            "Wind Speed: ${_weather?.windSpeed} m/s",
-                            style: const TextStyle(fontSize: 20),
+                          child: Padding(
+                            padding: const EdgeInsets.all(15.0),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: <Widget>[
+                                Row(
+                                  mainAxisAlignment:
+                                      MainAxisAlignment.spaceBetween,
+                                  children: [
+                                    Text(
+                                      "Humidity",
+                                      style: const TextStyle(fontSize: 20),
+                                    ),
+                                    Text(
+                                      "${_weather?.humidity}%",
+                                      style: TextStyle(
+                                        fontSize: 20,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                                const SizedBox(height: 15),
+                                Row(
+                                  mainAxisAlignment:
+                                      MainAxisAlignment.spaceBetween,
+                                  children: [
+                                    Text(
+                                      "Pressure",
+                                      style: const TextStyle(fontSize: 20),
+                                    ),
+                                    Text(
+                                      "${_weather?.pressure}%",
+                                      style: TextStyle(
+                                        fontSize: 20,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                                const SizedBox(height: 15),
+                                Row(
+                                  mainAxisAlignment:
+                                      MainAxisAlignment.spaceBetween,
+                                  children: [
+                                    Text(
+                                      "Wind Speed",
+                                      style: const TextStyle(fontSize: 20),
+                                    ),
+                                    Text(
+                                      "${_weather?.windSpeed} m/s",
+                                      style: TextStyle(
+                                        fontSize: 20,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                                // Center(
+                                //   child: Text(
+                                //     "Humidity: ${_weather?.humidity}%",
+                                //     style: const TextStyle(fontSize: 20),
+                                //   ),
+                                // ),
+                                // Center(
+                                //   child: Text(
+                                //     "Pressure: ${_weather?.pressure}%",
+                                //     style: const TextStyle(fontSize: 20),
+                                //   ),
+                                // ),
+                                // Center(
+                                //   child: Text(
+                                //     "Wind Speed: ${_weather?.windSpeed} m/s",
+                                //     style: const TextStyle(fontSize: 20),
+                                //   ),
+                                // ),
+                              ],
+                            ),
                           ),
                         ),
                         const SizedBox(height: 20),
                         _forecasts != null
-                          ? Container(
-                              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 10),
-                              height: 140,
-                              width: double.infinity,
-                              child: ListView(
-                                scrollDirection: Axis.horizontal,
-                                children: List.generate(5, (index) {
-                                  final forecast = _forecasts![index];
-                                  return Padding(
-                                    padding: const EdgeInsets.symmetric(horizontal: 5),
-                                    child: Container(
-                                      width: 100,
-                                      height: 140,
-                                      decoration: ShapeDecoration(
-                                        color: const Color(0xFFFFC107),
-                                        shape: RoundedRectangleBorder(
-                                          borderRadius: BorderRadius.circular(20),
+                            ? Container(
+                                padding: const EdgeInsets.symmetric(
+                                    horizontal: 10, vertical: 10),
+                                height: 170,
+                                width: double.infinity,
+                                child: ListView(
+                                  scrollDirection: Axis.horizontal,
+                                  children: List.generate(5, (index) {
+                                    final forecast = _forecasts![index];
+                                    return Padding(
+                                      padding: const EdgeInsets.symmetric(
+                                          horizontal: 5),
+                                      child: Container(
+                                        width: 100,
+                                        height: 260,
+                                        decoration: ShapeDecoration(
+                                          color: Colors.grey.shade200
+                                              .withOpacity(0.5),
+                                          shape: RoundedRectangleBorder(
+                                            borderRadius:
+                                                BorderRadius.circular(15),
+                                          ),
+                                        ),
+                                        child: Column(
+                                          mainAxisAlignment:
+                                              MainAxisAlignment.center,
+                                          crossAxisAlignment:
+                                              CrossAxisAlignment.center,
+                                          children: <Widget>[
+                                            Text(
+                                              DateFormat('EEE')
+                                                  .format(forecast.dateTime),
+                                              style: const TextStyle(
+                                                  fontSize: 18,
+                                                  color: Colors.blue),
+                                            ),
+                                            const SizedBox(height: 5),
+                                            Lottie.asset(
+                                                getWeatherAnimation(
+                                                    forecast.mainCondition),
+                                                width: 45),
+                                            const SizedBox(height: 5),
+                                            Text(
+                                              "${forecast.temperature.round()}°C",
+                                              style: const TextStyle(
+                                                  fontSize: 26,
+                                                  color: Colors.blue),
+                                            ),
+                                            const SizedBox(height: 5),
+                                            Text(
+                                              forecast.mainCondition,
+                                              style: const TextStyle(
+                                                  fontSize: 16,
+                                                  color: Colors.blue),
+                                            ),
+                                          ],
                                         ),
                                       ),
-                                      child: Column(
-                                        mainAxisAlignment: MainAxisAlignment.center,
-                                        crossAxisAlignment: CrossAxisAlignment.center,
-                                        children: <Widget>[
-                                          Text(
-                                            DateFormat('EEE').format(forecast.dateTime),
-                                            style: const TextStyle(fontSize: 18, color: Colors.white),
-                                          ),
-                                          const SizedBox(height: 8),
-                                          Text(
-                                            "${forecast.temperature.round()}°C",
-                                            style: const TextStyle(fontSize: 26, color: Colors.white),
-                                          ),
-                                          const SizedBox(height: 8),
-                                          Text(
-                                            forecast.mainCondition,
-                                            style: const TextStyle(fontSize: 16, color: Colors.white),
-                                          ),
-                                        ],
-                                      ),
-                                    ),
-                                  );
-                                }),
-                              ),
-                            )
-                          : Center(child: CircularProgressIndicator()),
+                                    );
+                                  }),
+                                ),
+                              )
+                            : Center(child: CircularProgressIndicator()),
                       ],
                     ),
                   ),
