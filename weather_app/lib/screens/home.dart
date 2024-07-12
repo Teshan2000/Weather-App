@@ -5,6 +5,7 @@ import 'package:lottie/lottie.dart';
 import 'package:weather_app/models/weatherModel.dart';
 import 'package:weather_app/models/forecastModel.dart';
 import 'package:weather_app/providers/weatherService.dart';
+import 'package:weather_app/screens/locations.dart';
 
 class Home extends StatefulWidget {
   const Home({super.key});
@@ -87,7 +88,10 @@ class _HomeState extends State<Home> {
         ),
         actions: [
           IconButton(
-              onPressed: () {},
+              onPressed: () {
+                Navigator.push(context,
+                    MaterialPageRoute(builder: (context) => Locations()));
+              },
               icon: const Icon(Icons.add_location_alt_outlined))
         ],
       ),

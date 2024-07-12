@@ -23,4 +23,12 @@ class Weather {
         windSpeed: json['wind']['speed'].toDouble(),
         mainCondition: json['weather'][0]['main']);
   }
+
+  Map<String, dynamic> toJson() {
+    return {
+      'cityName': cityName,
+      'temperature': temperature,
+      'mainCondition': mainCondition,
+    };
+  }
 }
