@@ -37,32 +37,43 @@ class SplashScreenState extends State<SplashScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color.fromRGBO(209, 228, 230, 1),
-      body: Padding(
-        padding: const EdgeInsets.all(38.0),
-        child: Column(
-          children: [
-            const SizedBox(height: 80),
-            Center(
-              child: Lottie.asset(
-                'assets/splash.json',
-                fit: BoxFit.contain,
-                width: MediaQuery.of(context).size.width,
-                // height: MediaQuery.of(context).size.height,
-              ),
-            ),
-            const SizedBox(height: 40),
-            Container(
-              width: 170,
-              child: Center(
-                child: Text(
-                  "Weather Forecasts",
-                  textAlign: TextAlign.center,
-                  style: const TextStyle(fontSize: 35),
+      body: Container(
+        width: MediaQuery.of(context).size.width,
+        height: MediaQuery.of(context).size.height,
+        decoration: BoxDecoration(
+            image: DecorationImage(
+          image: AssetImage('assets/background.png'),
+          fit: BoxFit.cover,
+        )),
+        child: Padding(
+          padding: const EdgeInsets.all(38.0),
+          child: Column(
+            children: [
+              const SizedBox(height: 80),
+              Center(
+                child: Lottie.asset(
+                  'assets/splash.json',
+                  fit: BoxFit.contain,
+                  width: MediaQuery.of(context).size.width,
+                  // height: MediaQuery.of(context).size.height,
                 ),
               ),
-            ),
-          ],
+              const SizedBox(height: 40),
+              Container(
+                width: 170,
+                child: Center(
+                  child: Text(
+                    "Daily Weather Forecasts",
+                    textAlign: TextAlign.center,
+                    style: const TextStyle(
+                      fontSize: 35,
+                      fontWeight: FontWeight.bold
+                    ),
+                  ),
+                ),
+              ),
+            ],
+          ),
         ),
       ),
     );
