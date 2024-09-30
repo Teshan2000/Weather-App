@@ -116,7 +116,7 @@ class _NewWeatherState extends State<NewWeather> {
                                 spreadRadius: 3,
                                 blurRadius: 7,
                                 offset:
-                                    Offset(0, 3), // changes position of shadow
+                                    Offset(0, 3),
                               ),
                             ],
                             color: Colors.white.withOpacity(0.50),
@@ -197,7 +197,7 @@ class _NewWeatherState extends State<NewWeather> {
                                         children: [
                                           const Spacer(),
                                           Image.asset(
-                                            'assets/water.png',
+                                            'assets/icon.png',
                                             fit: BoxFit.cover,
                                             width: 30,
                                           ),
@@ -247,7 +247,7 @@ class _NewWeatherState extends State<NewWeather> {
                               child: Row(
                                 children: [
                                   Text(
-                                    DateFormat('EEE').format(forecast.dateTime),
+                                    DateFormat.EEEE().format(forecast.dateTime),
                                     textAlign: TextAlign.center,
                                     style: const TextStyle(
                                         fontSize: 16, color: Colors.black),

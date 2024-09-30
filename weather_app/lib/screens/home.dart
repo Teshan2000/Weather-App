@@ -34,7 +34,7 @@ class _HomeState extends State<Home> {
   }
 
   String getWeatherAnimation(String? mainCondition) {
-    if (mainCondition == null) return 'assets/sunny.json';
+    if (mainCondition == null) return 'assets/clear.png';
 
     switch (mainCondition.toLowerCase()) {
       case 'clouds':
@@ -43,18 +43,19 @@ class _HomeState extends State<Home> {
       case 'haze':
       case 'dust':
       case 'fog':
-        return 'assets/cloudy.json';
+        return 'assets/clear.png';
       case 'rain':
+        return 'assets/rain.png';
       case 'drizzle':
-        return 'assets/rainy.json';
+        return 'assets/drizzle.png';
       case 'shower rain':
-        return 'assets/shower.json';
+        return 'assets/shower.png';
       case 'thunderstorm':
-        return 'assets/thunder.json';
+        return 'assets/thunder run.png';
       case 'clear':
-        return 'assets/sunny.json';
+        return 'assets/clear.png';
       default:
-        return 'assets/sunny.json';
+        return 'assets/clear.png';
     }
   }
 
@@ -127,7 +128,7 @@ class _HomeState extends State<Home> {
                 ),
               ),
               const SizedBox(height: 5),
-              Lottie.asset(
+              Image.asset(
                   getWeatherAnimation(
                     _weather?.mainCondition,
                   ),
@@ -278,7 +279,7 @@ class _HomeState extends State<Home> {
                                         fontSize: 15, color: Colors.blue),
                                   ),
                                   const SizedBox(height: 5),
-                                  Lottie.asset(
+                                  Image.asset(
                                       getWeatherAnimation(
                                           forecast.mainCondition),
                                       width: 30),
