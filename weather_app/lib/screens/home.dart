@@ -1,10 +1,10 @@
 import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
-import 'package:lottie/lottie.dart';
 import 'package:weather_app/models/weatherModel.dart';
 import 'package:weather_app/models/forecastModel.dart';
 import 'package:weather_app/providers/weatherService.dart';
+import 'package:weather_app/screens/forecasts.dart';
 import 'package:weather_app/screens/locations.dart';
 
 class Home extends StatefulWidget {
@@ -110,199 +110,285 @@ class _HomeState extends State<Home> {
         child: SingleChildScrollView(
           child: Column(
             children: [
-              const SizedBox(height: 87),
-              Center(
-                child: Text(
-                  "   $actualDate | $actualTime",
-                  style: const TextStyle(fontSize: 18),
-                ),
-              ),
-              const SizedBox(height: 17),
-              Center(
-                child: Text(
-                  "${_weather?.temperature.round()}°C",
-                  style: const TextStyle(
-                      fontSize: 55,
-                      color: Colors.blue,
-                      fontWeight: FontWeight.bold),
-                ),
-              ),
-              const SizedBox(height: 5),
-              Image.asset(
-                  getWeatherAnimation(
-                    _weather?.mainCondition,
-                  ),
-                  width: 190),
-              Center(
-                child: Text(
-                  _weather?.mainCondition ?? "",
-                  style: const TextStyle(
-                      fontSize: 20,
-                      color: Colors.blue,
-                      fontWeight: FontWeight.bold),
-                ),
-              ),
-              const SizedBox(height: 20),
               Container(
-                width: 280,
-                height: 125,
+                height: 810,
+                width: double.infinity,
                 decoration: ShapeDecoration(
-                  color: Colors.grey.shade200.withOpacity(0.5),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(15),
+                  shape: const RoundedRectangleBorder(
+                    borderRadius: BorderRadius.only(
+                        bottomLeft: Radius.circular(20),
+                        bottomRight: Radius.circular(20)),
                   ),
+                  shadows: [
+                    BoxShadow(
+                      color: Colors.blue.withOpacity(0.5),
+                      spreadRadius: 3,
+                      blurRadius: 7,
+                      offset: const Offset(0, 3),
+                    ),
+                  ],
+                  color: Colors.white.withOpacity(0.50),
                 ),
-                child: Padding(
-                  padding: const EdgeInsets.all(10),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: <Widget>[
-                      Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 20),
-                        child: Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            Text(
-                              "Humidity",
-                              style: const TextStyle(fontSize: 15),
-                            ),
-                            const SizedBox(width: 0),
-                            Image.asset(
-                              'assets/water.png',
-                              fit: BoxFit.contain,
-                              width: 30,
-                            ),
-                            const SizedBox(width: 18),
-                            Text(
-                              "${_weather?.humidity}%",
-                              style: TextStyle(
-                                fontSize: 15,
-                              ),
-                            ),
-                          ],
-                        ),
+                child: Column(
+                  children: [
+                    const SizedBox(height: 87),
+                    Center(
+                      child: Text(
+                        "   $actualDate | $actualTime",
+                        style: const TextStyle(fontSize: 18),
                       ),
-                      const SizedBox(height: 5),
-                      Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 20),
-                        child: Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            Text(
-                              "Pressure",
-                              style: const TextStyle(fontSize: 15),
-                            ),
-                            Image.asset(
-                              'assets/pressure.png',
-                              fit: BoxFit.contain,
-                              width: 30,
-                            ),
-                            Text(
-                              "${_weather?.pressure} bar",
-                              style: TextStyle(
-                                fontSize: 15,
-                              ),
-                            ),
-                          ],
-                        ),
+                    ),
+                    const SizedBox(height: 17),
+                    Center(
+                      child: Text(
+                        "${_weather?.temperature.round()}°C",
+                        style: const TextStyle(
+                            fontSize: 55,
+                            color: Colors.blue,
+                            fontWeight: FontWeight.bold),
                       ),
-                      const SizedBox(height: 5),
-                      Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 20),
-                        child: Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            Text(
-                              "Wind Speed",
-                              style: const TextStyle(fontSize: 15),
-                            ),
-                            Image.asset(
-                              'assets/wind.png',
-                              fit: BoxFit.contain,
-                              width: 30,
-                            ),
-                            Text(
-                              "${_weather?.windSpeed} m/s",
-                              style: TextStyle(
-                                fontSize: 15,
-                              ),
-                            ),
-                          ],
+                    ),
+                    const SizedBox(height: 5),
+                    Image.asset(
+                        getWeatherAnimation(
+                          _weather?.mainCondition,
                         ),
+                        width: 220),
+                    Center(
+                      child: Text(
+                        _weather?.mainCondition ?? "",
+                        style: const TextStyle(
+                            fontSize: 20,
+                            color: Colors.blue,
+                            fontWeight: FontWeight.bold),
                       ),
-                    ],
-                  ),
-                ),
-              ),
-              const SizedBox(height: 20),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.start,
-                children: [
-                  const SizedBox(width: 20),
-                  Text(
-                    "5 Day Forecasts",
-                    textAlign: TextAlign.start,
-                    style: const TextStyle(
-                        fontSize: 16, fontWeight: FontWeight.bold),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 5),
-              _forecasts != null
-                  ? Container(
-                      padding: const EdgeInsets.symmetric(
-                          horizontal: 10, vertical: 10),
-                      height: 150,
-                      width: double.infinity,
-                      child: ListView(
-                        scrollDirection: Axis.horizontal,
-                        children: List.generate(5, (index) {
-                          final forecast = _forecasts![index];
-                          return Padding(
-                            padding: const EdgeInsets.symmetric(horizontal: 5),
-                            child: Container(
-                              width: 77,
-                              height: 260,
-                              decoration: ShapeDecoration(
-                                color: Colors.grey.shade200.withOpacity(0.5),
-                                shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(25),
+                    ),
+                    const SizedBox(height: 20),
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 10),
+                      child: Container(
+                        width: 350,
+                        height: 125,
+                        decoration: ShapeDecoration(
+                          color: Colors.transparent,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(15),
+                          ),
+                        ),
+                        child: Padding(
+                          padding: const EdgeInsets.symmetric(vertical: 10),
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: <Widget>[
+                              Container(
+                                width: 105,
+                                height: 125,
+                                padding:
+                                    const EdgeInsets.symmetric(vertical: 10),
+                                decoration: ShapeDecoration(
+                                  color: Colors.white.withOpacity(0.5),
+                                  shape: RoundedRectangleBorder(
+                                      borderRadius: BorderRadius.circular(15),
+                                      side: const BorderSide(
+                                          width: 2.5, color: Colors.white)),
+                                ),
+                                child: Column(
+                                  mainAxisAlignment:
+                                      MainAxisAlignment.spaceAround,
+                                  children: [
+                                    const Text(
+                                      "Humidity",
+                                      style: TextStyle(fontSize: 15),
+                                    ),
+                                    Image.asset(
+                                      'assets/water.png',
+                                      fit: BoxFit.contain,
+                                      width: 35,
+                                    ),
+                                    Text(
+                                      "${_weather?.humidity}%",
+                                      style: TextStyle(
+                                          fontSize: 15,
+                                          color: Colors.blue,
+                                          fontWeight: FontWeight.bold),
+                                    ),
+                                  ],
                                 ),
                               ),
-                              child: Column(
-                                mainAxisAlignment: MainAxisAlignment.center,
-                                crossAxisAlignment: CrossAxisAlignment.center,
-                                children: <Widget>[
-                                  Text(
-                                    DateFormat('EEE').format(forecast.dateTime),
-                                    style: const TextStyle(
-                                        fontSize: 15, color: Colors.blue),
+                              const SizedBox(width: 5),
+                              Container(
+                                width: 105,
+                                height: 125,
+                                padding:
+                                    const EdgeInsets.symmetric(vertical: 10),
+                                decoration: ShapeDecoration(
+                                  color: Colors.white.withOpacity(0.5),
+                                  shape: RoundedRectangleBorder(
+                                      borderRadius: BorderRadius.circular(15),
+                                      side: const BorderSide(
+                                          width: 2.5, color: Colors.white)),
+                                ),
+                                child: Column(
+                                  mainAxisAlignment:
+                                      MainAxisAlignment.spaceAround,
+                                  children: [
+                                    const Text(
+                                      "Pressure",
+                                      style: TextStyle(fontSize: 15),
+                                    ),
+                                    Image.asset(
+                                      'assets/pressure.png',
+                                      fit: BoxFit.contain,
+                                      width: 35,
+                                    ),
+                                    Text(
+                                      "${_weather?.pressure} bar",
+                                      style: TextStyle(
+                                          fontSize: 15,
+                                          color: Colors.blue,
+                                          fontWeight: FontWeight.bold),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                              const SizedBox(width: 5),
+                              Container(
+                                width: 105,
+                                height: 125,
+                                padding:
+                                    const EdgeInsets.symmetric(vertical: 10),
+                                decoration: ShapeDecoration(
+                                  color: Colors.white.withOpacity(0.5),
+                                  shape: RoundedRectangleBorder(
+                                      borderRadius: BorderRadius.circular(15),
+                                      side: const BorderSide(
+                                          width: 2.5, color: Colors.white)),
+                                ),
+                                child: Column(
+                                  mainAxisAlignment:
+                                      MainAxisAlignment.spaceAround,
+                                  children: [
+                                    const Text(
+                                      "Wind Speed",
+                                      style: TextStyle(fontSize: 15),
+                                    ),
+                                    Image.asset(
+                                      'assets/wind.png',
+                                      fit: BoxFit.contain,
+                                      width: 35,
+                                    ),
+                                    Text(
+                                      "${_weather?.windSpeed} m/s",
+                                      style: TextStyle(
+                                          fontSize: 15,
+                                          color: Colors.blue,
+                                          fontWeight: FontWeight.bold),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 20),
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 15),
+                      child: Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: <Widget>[
+                            const Text(
+                              "5 Day Forecasts",
+                              textAlign: TextAlign.start,
+                              style: TextStyle(
+                                  fontSize: 16, fontWeight: FontWeight.bold),
+                            ),
+                            TextButton(
+                              onPressed: () {
+                                Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (context) => const Forecasts(),
                                   ),
-                                  const SizedBox(height: 5),
-                                  Image.asset(
-                                      getWeatherAnimation(
-                                          forecast.mainCondition),
-                                      width: 30),
-                                  const SizedBox(height: 5),
-                                  Text(
-                                    "${forecast.temperature.round()}°C",
-                                    style: const TextStyle(
-                                        fontSize: 15, color: Colors.blue),
-                                  ),
-                                  const SizedBox(height: 5),
-                                  Text(
-                                    forecast.mainCondition,
-                                    style: const TextStyle(
-                                        fontSize: 15, color: Colors.blue),
-                                  ),
-                                ],
+                                );
+                              },
+                              child: const Text(
+                                "More Details",
+                                style: TextStyle(
+                                  fontSize: 16,
+                                  color: Colors.blue,
+                                ),
                               ),
                             ),
-                          );
-                        }),
-                      ),
-                    )
-                  : Center(child: CircularProgressIndicator()),
+                          ]),
+                    ),
+                    const SizedBox(height: 5),
+                    _forecasts != null
+                        ? Container(
+                            padding: const EdgeInsets.symmetric(
+                                horizontal: 10, vertical: 10),
+                            height: 145,
+                            width: double.infinity,
+                            child: ListView(
+                              scrollDirection: Axis.horizontal,
+                              children: List.generate(5, (index) {
+                                final forecast = _forecasts![index];
+                                return Padding(
+                                  padding:
+                                      const EdgeInsets.symmetric(horizontal: 5),
+                                  child: Container(
+                                    width: 77,
+                                    height: 260,
+                                    decoration: ShapeDecoration(
+                                      color:
+                                          Colors.white.withOpacity(0.5),
+                                      shape: RoundedRectangleBorder(
+                                        borderRadius: BorderRadius.circular(20),
+                                        side: const BorderSide(
+                                          width: 2.5, color: Colors.white)
+                                      ),
+                                    ),
+                                    child: Column(
+                                      mainAxisAlignment:
+                                          MainAxisAlignment.center,
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.center,
+                                      children: <Widget>[
+                                        Text(
+                                          DateFormat('EEE')
+                                              .format(forecast.dateTime),
+                                          style: const TextStyle(
+                                              fontSize: 15, color: Colors.black),
+                                        ),
+                                        const SizedBox(height: 5),
+                                        Image.asset(
+                                            getWeatherAnimation(
+                                                forecast.mainCondition),
+                                            width: 30),
+                                        const SizedBox(height: 5),
+                                        Text(
+                                          "${forecast.temperature.round()}°C",
+                                          style: const TextStyle(
+                                              fontSize: 15, color: Colors.blue, fontWeight: FontWeight.bold),
+                                        ),
+                                        const SizedBox(height: 5),
+                                        Text(
+                                          forecast.mainCondition,
+                                          style: const TextStyle(
+                                              fontSize: 15, color: Colors.blue),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                );
+                              }),
+                            ),
+                          )
+                        : Center(child: CircularProgressIndicator()),
+                  ],
+                ),
+              )
             ],
           ),
         ),

@@ -4,14 +4,14 @@ import 'package:lottie/lottie.dart';
 import 'package:weather_app/models/forecastModel.dart';
 import 'package:weather_app/providers/weatherService.dart';
 
-class NewWeather extends StatefulWidget {
-  const NewWeather({super.key});
+class Forecasts extends StatefulWidget {
+  const Forecasts({super.key});
 
   @override
-  State<NewWeather> createState() => _NewWeatherState();
+  State<Forecasts> createState() => _ForecastsState();
 }
 
-class _NewWeatherState extends State<NewWeather> {
+class _ForecastsState extends State<Forecasts> {
   final WeatherService _weatherService = WeatherService('c3281946b6139602ecabb86fd3e733c2');
   List<Forecast>? _forecasts;
   
@@ -73,7 +73,7 @@ class _NewWeatherState extends State<NewWeather> {
                 Navigator.push(
                     context,
                     MaterialPageRoute(
-                        builder: (context) => const NewWeather()));
+                        builder: (context) => const Forecasts()));
               },
               icon: const Icon(Icons.add_location_alt_outlined))
         ],
