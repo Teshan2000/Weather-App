@@ -4,6 +4,7 @@ import 'package:intl/intl.dart';
 import 'package:weather_app/models/weatherModel.dart';
 import 'package:weather_app/models/forecastModel.dart';
 import 'package:weather_app/providers/weatherService.dart';
+import 'package:weather_app/screens/airQualityIndex.dart';
 import 'package:weather_app/screens/forecasts.dart';
 import 'package:weather_app/screens/locations.dart';
 
@@ -94,7 +95,7 @@ class _HomeState extends State<Home> {
           IconButton(
               onPressed: () {
                 Navigator.push(context,
-                    MaterialPageRoute(builder: (context) => Locations()));
+                    MaterialPageRoute(builder: (context) => AirQualityIndex()));
               },
               icon: const Icon(Icons.add_location_alt_outlined))
         ],
