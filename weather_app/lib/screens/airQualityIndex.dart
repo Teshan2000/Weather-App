@@ -13,6 +13,7 @@ class AirQualityIndex extends StatefulWidget {
 class _AirQualityIndexState extends State<AirQualityIndex> {
   final _WeatherService = WeatherService('c3281946b6139602ecabb86fd3e733c2');
   AirQuality? aqiData;
+  bool isLoading = true;
 
   @override
   void initState() {
@@ -21,13 +22,20 @@ class _AirQualityIndexState extends State<AirQualityIndex> {
   }
 
   void fetchAirQualityData() async {
-    String cityName = await _WeatherService.getCurrentCity();
+    // String cityName = await _WeatherService.getCurrentCity();
     try {
-      final data = await _WeatherService.fetchAirQuality(cityName);
+      AirQuality airQuality =
+          await _WeatherService.fetchAirQualityByCityName('Kandy');
       setState(() {
-        aqiData = data;
+        aqiData = airQuality;
+        isLoading = false;
       });
-    } catch (e) {}
+    } catch (e) {
+      print("Error fetching air quality data: $e");
+      setState(() {
+        isLoading = false;
+      });
+    }
   }
 
   @override
@@ -47,7 +55,7 @@ class _AirQualityIndexState extends State<AirQualityIndex> {
         height: MediaQuery.of(context).size.height,
         decoration: const BoxDecoration(
             image: DecorationImage(
-          image: AssetImage('assets/Group 1.png'),
+          image: AssetImage('assets/background.png'),
           fit: BoxFit.cover,
         )),
         child: SingleChildScrollView(
@@ -60,12 +68,11 @@ class _AirQualityIndexState extends State<AirQualityIndex> {
                     shrinkWrap: true,
                     itemCount: 1,
                     itemBuilder: (context, index) {
-                      // final weather = forecasts[index];
                       return Padding(
                         padding: const EdgeInsets.symmetric(
                             horizontal: 0, vertical: 0),
                         child: Container(
-                          height: 260,
+                          height: 460,
                           width: double.infinity,
                           decoration: ShapeDecoration(
                             shape: const RoundedRectangleBorder(
@@ -104,14 +111,22 @@ class _AirQualityIndexState extends State<AirQualityIndex> {
                                       child: Row(
                                         children: [
                                           const Spacer(),
+                                          const Text(
+                                            "Air Quality Index",
+                                            textAlign: TextAlign.center,
+                                            style: TextStyle(
+                                                fontSize: 16,
+                                                color: Colors.black),
+                                          ),
+                                          const Spacer(),
                                           Image.asset(
                                             'assets/wind.png',
                                             fit: BoxFit.cover,
                                             width: 30,
                                           ),
                                           const Spacer(),
-                                          const Text(
-                                            "Air Quality Index",
+                                          Text(
+                                            aqiData!.aqi.toString(),
                                             textAlign: TextAlign.center,
                                             style: TextStyle(
                                                 fontSize: 16,
@@ -123,33 +138,45 @@ class _AirQualityIndexState extends State<AirQualityIndex> {
                                     ),
                                   ),
                                 ),
-                                aqiData == null
-                                ? Center(child: CircularProgressIndicator()) 
-                                : SfCircularChart(
-                                  title: ChartTitle(
-                                      text: 'Air Quality Components'),
-                                  legend: Legend(isVisible: true),
-                                  series: <CircularSeries>[
-                                    DoughnutSeries<ChartData, String>(
-                                      dataSource: [
-                                        ChartData('CO', aqiData!.co),
-                                        ChartData('NO', aqiData!.no),
-                                        ChartData('NO2', aqiData!.no2),
-                                        ChartData('O3', aqiData!.o3),
-                                        ChartData('SO2', aqiData!.so2),
-                                        ChartData('PM2.5', aqiData!.pm2_5),
-                                        ChartData('PM10', aqiData!.pm10),
-                                        ChartData('NH3', aqiData!.nh3),
-                                      ],
-                                      xValueMapper: (ChartData data, _) =>
-                                          data.name,
-                                      yValueMapper: (ChartData data, _) =>
-                                          data.value,
-                                      dataLabelSettings:
-                                          DataLabelSettings(isVisible: true),
-                                    )
-                                  ],
-                                )
+                                const SizedBox(height: 27),
+                                isLoading
+                                    ? Center(child: CircularProgressIndicator())
+                                    : SfCircularChart(
+                                        title: ChartTitle(
+                                            text: 'Air Quality Components'),
+                                        legend: Legend(
+                                          isVisible: true, 
+                                          isResponsive: true,
+                                          position: LegendPosition.bottom,
+                                          alignment: ChartAlignment.center,
+                                          iconHeight: 25,                                          
+                                          textStyle: TextStyle(fontSize: 15),
+                                          overflowMode: LegendItemOverflowMode.wrap
+                                        ),
+                                        series: <CircularSeries>[
+                                          DoughnutSeries<ChartData, String>(
+                                            radius: '120%',
+                                            explode: true,
+                                            dataSource: [
+                                              ChartData('CO', aqiData!.co),
+                                              ChartData('NO', aqiData!.no),
+                                              ChartData('NO2', aqiData!.no2),
+                                              ChartData('O3', aqiData!.o3),
+                                              ChartData('SO2', aqiData!.so2),
+                                              ChartData('PM2.5', aqiData!.pm2_5),
+                                              ChartData('PM10', aqiData!.pm10),
+                                              ChartData('NH3', aqiData!.nh3),
+                                            ],
+                                            xValueMapper: (ChartData data, _) =>
+                                                data.name,
+                                            yValueMapper: (ChartData data, _) =>
+                                                data.value,
+                                            dataLabelSettings:
+                                                DataLabelSettings(
+                                                    isVisible: true),
+                                          )
+                                        ],
+                                      )
                               ],
                             ),
                           ),

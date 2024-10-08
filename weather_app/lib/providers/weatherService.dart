@@ -61,9 +61,9 @@ class WeatherService {
     }
   }
 
-  Future<AirQuality> fetchAirQuality(String cityName) async {
+  Future<AirQuality> fetchAirQuality(double lat, double lon) async {
     final response = await http.get(Uri.parse(
-        '$Base_URL/air_pollution?q=$cityName&appid=$apiKey&units=metric'));
+        '$Base_URL/air_pollution?lat=$lat&lon=$lon&appid=$apiKey'));
 
     if (response.statusCode == 200) {
       final data = json.decode(response.body)['list'][0];
@@ -71,5 +71,12 @@ class WeatherService {
     } else {
       throw Exception('Failed to fetch Air Quality Data');
     }
+  }
+
+  Future<AirQuality> fetchAirQualityByCityName(String cityName) async {
+    List<Location> locations = await locationFromAddress(cityName);
+    double lat = locations[0].latitude;
+    double lon = locations[0].longitude;
+    return await fetchAirQuality(lat, lon);
   }
 }

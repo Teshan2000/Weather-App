@@ -16,7 +16,7 @@ class Weather {
 
   factory Weather.fromJson(Map<String, dynamic> json) {
     return Weather(
-        cityName: json['name'],
+        cityName: json['name'] ?? "Colombo", 
         temperature: json['main']['temp'].toDouble(),
         humidity: json['main']['humidity']?.toInt() ?? 0,
         pressure: json['main']['temp'].toInt(),
