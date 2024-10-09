@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'package:geocoding/geocoding.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:weather_app/models/airQualityModel.dart';
+import 'package:weather_app/models/dailyAirQualityModel.dart';
 import 'package:weather_app/models/forecastModel.dart';
 import 'package:http/http.dart' as http;
 import 'package:weather_app/models/weatherModel.dart';
@@ -73,10 +74,34 @@ class WeatherService {
     }
   }
 
+  Future<List<AirQualityForecast>> fetchAirQualityForecast(double lat, double lon) async {
+    final response = await http.get(Uri.parse(
+        '$Base_URL/air_pollution/forecast?lat=$lat&lon=$lon&appid=$apiKey'));
+
+    if (response.statusCode == 200) {
+      final List<dynamic> data = json.decode(response.body)['list'];
+      List<AirQualityForecast> forecasts = [];
+
+      for (var item in data) {
+        forecasts.add(AirQualityForecast.fromJson(item));
+      }
+      return forecasts;
+    } else {
+      throw Exception('Failed to fetch Air Quality Forecast');
+    }
+  }
+
   Future<AirQuality> fetchAirQualityByCityName(String cityName) async {
     List<Location> locations = await locationFromAddress(cityName);
     double lat = locations[0].latitude;
     double lon = locations[0].longitude;
     return await fetchAirQuality(lat, lon);
+  }
+
+  Future<List<AirQualityForecast>> fetchAirQualityForecastByCityName(String cityName) async {
+    List<Location> locations = await locationFromAddress(cityName);
+    double lat = locations[0].latitude;
+    double lon = locations[0].longitude;
+    return await fetchAirQualityForecast(lat, lon);
   }
 }
