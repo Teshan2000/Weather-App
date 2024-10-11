@@ -63,29 +63,34 @@ class WeatherService {
   }
 
   Future<AirQuality> fetchAirQuality(double lat, double lon) async {
-    final response = await http.get(Uri.parse(
-        '$Base_URL/air_pollution?lat=$lat&lon=$lon&appid=$apiKey'));
+    final response = await http.get(
+        Uri.parse('$Base_URL/air_pollution?lat=$lat&lon=$lon&appid=$apiKey'));
 
     if (response.statusCode == 200) {
-      final data = json.decode(response.body)['list'][0];
-      return AirQuality.fromJson(data);
+      final data = json.decode(response.body);
+      print('Air quality response: $data'); // Log the response
+      final airQualityData = data['list'][0];
+      return AirQuality.fromJson(airQualityData);
     } else {
       throw Exception('Failed to fetch Air Quality Data');
     }
   }
 
-  Future<List<AirQualityForecast>> fetchAirQualityForecast(double lat, double lon) async {
+  Future<List<AirQualityForecast>> fetchAirQualityForecast(
+      double lat, double lon) async {
     final response = await http.get(Uri.parse(
         '$Base_URL/air_pollution/forecast?lat=$lat&lon=$lon&appid=$apiKey'));
 
     if (response.statusCode == 200) {
-      final List<dynamic> data = json.decode(response.body)['list'];
-      List<AirQualityForecast> forecasts = [];
+      final data = jsonDecode(response.body);
+      final List forecasts = data['list'];
+      // final List<dynamic> data = json.decode(response.body)['list'];
+      // List<AirQualityForecast> forecasts = [];
 
-      for (var item in data) {
-        forecasts.add(AirQualityForecast.fromJson(item));
-      }
-      return forecasts;
+      // for (var item in data) {
+      //   forecasts.add(AirQualityForecast.fromJson(item));
+      // }
+      return forecasts.map((forecast) => AirQualityForecast.fromJson(forecast)).toList();
     } else {
       throw Exception('Failed to fetch Air Quality Forecast');
     }
@@ -98,7 +103,8 @@ class WeatherService {
     return await fetchAirQuality(lat, lon);
   }
 
-  Future<List<AirQualityForecast>> fetchAirQualityForecastByCityName(String cityName) async {
+  Future<List<AirQualityForecast>> fetchAirQualityForecastByCityName(
+      String cityName) async {
     List<Location> locations = await locationFromAddress(cityName);
     double lat = locations[0].latitude;
     double lon = locations[0].longitude;

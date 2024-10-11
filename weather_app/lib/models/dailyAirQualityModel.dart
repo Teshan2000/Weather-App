@@ -24,18 +24,17 @@ class AirQualityForecast {
   });
 
   factory AirQualityForecast.fromJson(Map<String, dynamic> json) {
-    final components = json['components'];
     return AirQualityForecast(
       date: DateTime.fromMillisecondsSinceEpoch(json['dt'] * 1000),
-      aqi: json['main']['aqi'], 
-      co: components['co'], 
-      no: components['no'], 
-      no2: components['no2'], 
-      o3: components['o3'], 
-      so2: components['so2'], 
-      pm2_5: components['pm2_5'], 
-      pm10: components['pm10'], 
-      nh3: components['nh3'],
+      aqi: json['main']['aqi'].toInt(), 
+      co: json['components']['co'].toDouble(), 
+      no: json['components']['no'].toDouble(), 
+      no2: json['components']['no2'].toDouble(), 
+      o3: json['components']['o3'].toDouble(), 
+      so2: json['components']['so2'].toDouble(), 
+      pm2_5: json['components']['pm2_5'].toDouble(), 
+      pm10: json['components']['pm10'].toDouble(), 
+      nh3: json['components']['nh3'].toDouble(),
     );
   }
 }
