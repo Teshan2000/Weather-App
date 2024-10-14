@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:geocoding/geocoding.dart';
 import 'package:intl/intl.dart';
 import 'package:syncfusion_flutter_charts/charts.dart';
 import 'package:weather_app/models/airQualityModel.dart';
@@ -15,36 +16,61 @@ class AirQualityIndex extends StatefulWidget {
 class _AirQualityIndexState extends State<AirQualityIndex> {
   final _WeatherService = WeatherService('c3281946b6139602ecabb86fd3e733c2');
   AirQuality? aqiData;
-  // List<AirQualityForecast>? forecasts;
+  List<AirQualityForecast>? forecasts;
   late Future<List<AirQualityForecast>> airQualityData;
   bool isLoading = true;
 
   @override
   void initState() {
     super.initState();
-    fetchAirQualityData();
-    airQualityData = WeatherService('c3281946b6139602ecabb86fd3e733c2').fetchAirQualityForecast(50.0, 50.0);
+    fetchAirQualityData('Kandy');
   }
 
-  void fetchAirQualityData() async {
+  Future<void> fetchAirQualityData(String cityName) async {
+    setState(() {
+      isLoading = true;
+    });
     try {
-      AirQuality airQuality =
-          await _WeatherService.fetchAirQualityByCityName('Kandy');
-      List<AirQualityForecast> forecastList =
-          await _WeatherService.fetchAirQualityForecastByCityName('Kandy');
-      print('AQI data: ${airQuality.aqi}');
+      List<Location> locations = await locationFromAddress(cityName);
+      double lat = locations[0].latitude;
+      double lon = locations[0].longitude;
+
+      final results = await Future.wait([
+        _WeatherService.fetchAirQuality(lat, lon),
+        _WeatherService.fetchAirQualityForecast(lat, lon),
+      ]);
       setState(() {
-        aqiData = airQuality;
-        // forecasts = forecastList;
+        aqiData = results[0] as AirQuality;
+        forecasts = results[1] as List<AirQualityForecast>;
         isLoading = false;
       });
     } catch (e, stackTrace) {
       print("Error fetching air quality data: $e");
-      print(
-          "Stacktrace: $stackTrace"); // Print the stack trace for more detailed debugging
+      print("Stacktrace: $stackTrace");
+
       setState(() {
         isLoading = false;
       });
+    }
+  }
+
+  String airQualityDescription(int? aqi) {
+    if (aqi == null)
+      return "Air Quality cannot be measureed. No internet connection";
+
+    switch (aqi) {
+      case 1:
+        return "Air Quality is Good. " "A Perfect day for a walk";
+      case 2:
+        return "Air Quality is Fair. Should wear a mask in outdoor";
+      case 3:
+        return "Air Quality is Moderate. Should stay at home";
+      case 4:
+        return "Air Quality is Poor. Not good for your health";
+      case 5:
+        return "Air Quality is Very Poor. Might cause severe health issues";
+      default:
+        return "Air Quality data is unavailable.";
     }
   }
 
@@ -54,7 +80,7 @@ class _AirQualityIndexState extends State<AirQualityIndex> {
       extendBodyBehindAppBar: true,
       appBar: AppBar(
         elevation: 0,
-        backgroundColor: Colors.white.withOpacity(0.50),
+        backgroundColor: Colors.transparent,
         title: const Center(
           child: Text("Air Quality"),
         ),
@@ -82,7 +108,7 @@ class _AirQualityIndexState extends State<AirQualityIndex> {
                         padding: const EdgeInsets.symmetric(
                             horizontal: 0, vertical: 0),
                         child: Container(
-                          height: 460,
+                          height: 500,
                           width: double.infinity,
                           decoration: ShapeDecoration(
                             shape: const RoundedRectangleBorder(
@@ -90,15 +116,19 @@ class _AirQualityIndexState extends State<AirQualityIndex> {
                                   bottomLeft: Radius.circular(20),
                                   bottomRight: Radius.circular(20)),
                             ),
+                            image: DecorationImage(
+                              image: AssetImage('assets/background.png'),
+                              fit: BoxFit.cover,
+                            ),
                             shadows: [
                               BoxShadow(
                                 color: Colors.blue.withOpacity(0.5),
-                                spreadRadius: 3,
+                                // spreadRadius: 3,
                                 blurRadius: 7,
-                                offset: const Offset(0, 3),
+                                offset: const Offset(0, 6),
                               ),
                             ],
-                            color: Colors.white.withOpacity(0.50),
+                            // color: Colors.white.withOpacity(0.50),
                           ),
                           child: Padding(
                             padding: const EdgeInsets.symmetric(
@@ -116,7 +146,7 @@ class _AirQualityIndexState extends State<AirQualityIndex> {
                                   ),
                                   child: Padding(
                                     padding: const EdgeInsets.symmetric(
-                                        horizontal: 30, vertical: 12),
+                                        horizontal: 30, vertical: 5),
                                     child: Center(
                                       child: Row(
                                         children: [
@@ -132,7 +162,7 @@ class _AirQualityIndexState extends State<AirQualityIndex> {
                                           Image.asset(
                                             'assets/wind.png',
                                             fit: BoxFit.cover,
-                                            width: 30,
+                                            width: 60,
                                           ),
                                           const Spacer(),
                                           Text(
@@ -150,12 +180,46 @@ class _AirQualityIndexState extends State<AirQualityIndex> {
                                     ),
                                   ),
                                 ),
-                                const SizedBox(height: 27),
+                                const SizedBox(height: 15),
+                                Container(
+                                  width: 360,
+                                  decoration: ShapeDecoration(
+                                    shape: RoundedRectangleBorder(
+                                        borderRadius: BorderRadius.circular(15),
+                                        side: const BorderSide(
+                                            width: 2.5, color: Colors.white)),
+                                    color: Colors.white.withOpacity(0.50),
+                                  ),
+                                  child: Padding(
+                                    padding: const EdgeInsets.symmetric(
+                                        horizontal: 0, vertical: 12),
+                                    child: Center(
+                                      child: Row(
+                                        children: [
+                                          const Spacer(),
+                                          Container(
+                                            // width: 280,
+                                            child: Text(
+                                              airQualityDescription(
+                                                  aqiData?.aqi),
+                                              // textAlign: TextAlign.justify,
+                                              style: TextStyle(
+                                                  fontSize: 16,
+                                                  color: Colors.black),
+                                            ),
+                                          ),
+                                          const Spacer(),
+                                        ],
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                                const SizedBox(height: 25),
                                 isLoading
                                     ? Center(child: CircularProgressIndicator())
                                     : SfCircularChart(
                                         title: ChartTitle(
-                                            text: 'Air Quality Components'),
+                                            text: 'Air Quality Components (µg/m³)'),
                                         legend: Legend(
                                             isVisible: true,
                                             isResponsive: true,
@@ -232,195 +296,76 @@ class _AirQualityIndexState extends State<AirQualityIndex> {
                       );
                     },
                   ),
-                  const SizedBox(height: 20),
-                  //           isLoading
-                  // ? Center(child: CircularProgressIndicator())
-                  // : ListView.builder(
-                  //     shrinkWrap: true,
-                  //     itemCount: forecasts?.length ?? 0,
-                  //     itemBuilder: (context, index) {
-                  //       final forecast = forecasts![index];
-                  //       return Card(
-                  //         child: ListTile(
-                  //           title: Text('Date: ${forecast.date}'),
-                  //           subtitle: Text('AQI: ${forecast.aqi}'),
-                  //         ),
-                  //       );
-                  //     },
-                  //   ),
-                  FutureBuilder<List<AirQualityForecast>>(
-                    future: airQualityData,
-                    builder: (context, snapshot) {
-                      if (snapshot.connectionState == ConnectionState.waiting) {
-                        return Center(child: CircularProgressIndicator());
-                      } else if (snapshot.hasError) {
-                        return Center(child: Text('Error: ${snapshot.error}'));
-                      } else if (snapshot.hasData) {
-                        final forecasts = snapshot.data!;
-                        return ListView.builder(
-                          scrollDirection: Axis.horizontal,
-                          itemCount: 5,
-                          itemBuilder: (context, index) {
-                            final forecast = forecasts[index];
-                            return Padding(
-                                  padding:
-                                      const EdgeInsets.symmetric(horizontal: 5),
-                                  child: Container(
-                                    width: double.infinity,
-                                    height: 260,
-                                    decoration: ShapeDecoration(
-                                      color:
-                                          Colors.white.withOpacity(0.5),
-                                      shape: RoundedRectangleBorder(
+                  const SizedBox(height: 30),
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 20),
+                    child: Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: <Widget>[
+                          const Text(
+                            "5 Day Air Quality Forecast",
+                            textAlign: TextAlign.start,
+                            style: TextStyle(
+                                fontSize: 16, fontWeight: FontWeight.bold),
+                          ),
+                        ]),
+                  ),
+                  const SizedBox(height: 15),
+                  isLoading
+                      ? Center(child: CircularProgressIndicator())
+                      : Container(
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 10, vertical: 10),
+                          height: 130,
+                          child: ListView.builder(
+                            shrinkWrap: true,
+                            scrollDirection: Axis.horizontal,
+                            itemCount: forecasts?.length ?? 0,
+                            itemBuilder: (context, index) {
+                              final forecast = forecasts![index];
+                              return Padding(
+                                padding:
+                                    const EdgeInsets.symmetric(horizontal: 5),
+                                child: Container(
+                                  width: 77,
+                                  height: 260,
+                                  decoration: ShapeDecoration(
+                                    color: Colors.white.withOpacity(0.5),
+                                    shape: RoundedRectangleBorder(
                                         borderRadius: BorderRadius.circular(20),
                                         side: const BorderSide(
-                                          width: 2.5, color: Colors.white)
-                                      ),
-                                    ),
-                                    child: Column(
-                                      mainAxisAlignment:
-                                          MainAxisAlignment.center,
-                                      crossAxisAlignment:
-                                          CrossAxisAlignment.center,
-                                      children: <Widget>[
-                                        Text(
-                                          'Date: ${forecast.date}',
-                                          style: const TextStyle(
-                                              fontSize: 15, color: Colors.black),
-                                        ),
-                                        const SizedBox(height: 5),
-                                        // Image.asset(
-                                        //     getWeatherAnimation(
-                                        //         forecast.mainCondition),
-                                        //     width: 30),
-                                        // const SizedBox(height: 5),
-                                        Text(
-                                          'AQI: ${forecast.aqi}',
-                                          style: const TextStyle(
-                                              fontSize: 15, color: Colors.blue, fontWeight: FontWeight.bold),
-                                        ),
-                                        const SizedBox(height: 5),
-                                        // Text(
-                                        //   forecast.mainCondition,
-                                        //   style: const TextStyle(
-                                        //       fontSize: 15, color: Colors.blue),
-                                        // ),
-                                      ],
-                                    ),
+                                            width: 2.5, color: Colors.white)),
                                   ),
-                                );
-                            return ListTile(
-                              title: Text('Date: ${forecast.date}'),
-                              subtitle: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Text('AQI: ${forecast.aqi}'),
-                                  Text('CO: ${forecast.co} µg/m³'),
-                                  Text('NO: ${forecast.no} µg/m³'),
-                                  Text('NO2: ${forecast.no2} µg/m³'),
-                                  Text('O3: ${forecast.o3} µg/m³'),
-                                  Text('SO2: ${forecast.so2} µg/m³'),
-                                  Text('PM2.5: ${forecast.pm2_5} µg/m³'),
-                                  Text('PM10: ${forecast.pm10} µg/m³'),
-                                  Text('NH3: ${forecast.nh3} µg/m³'),
-                                ],
-                              ),
-                            );
-                          },
-                        );
-                      } else {
-                        return Center(child: Text('No data available'));
-                      }
-                    },
-                  ),
-
-                  // isLoading
-                  //     ? Center(child: CircularProgressIndicator())
-                  //     : ListView.builder(
-                  //         shrinkWrap: true,
-                  //         itemCount: forecasts?.length ?? 0,
-                  //         itemBuilder: (context, index) {
-                  //           final forecast = forecasts![index];
-                  //           return Padding(
-                  //             padding: const EdgeInsets.symmetric(
-                  //                 horizontal: 0, vertical: 0),
-                  //             child: Container(
-                  //               height: 260,
-                  //               width: double.infinity,
-                  //               decoration: ShapeDecoration(
-                  //                 shape: const RoundedRectangleBorder(
-                  //                   borderRadius: BorderRadius.only(
-                  //                       bottomLeft: Radius.circular(20),
-                  //                       bottomRight: Radius.circular(20)),
-                  //                 ),
-                  //                 image: DecorationImage(
-                  //                   image: AssetImage('assets/background.png'),
-                  //                   fit: BoxFit.cover,
-                  //                 ),
-                  //                 shadows: [
-                  //                   BoxShadow(
-                  //                     color: Colors.blue.withOpacity(0.5),
-                  //                     // spreadRadius: 3,
-                  //                     blurRadius: 7,
-                  //                     offset: Offset(0, 6),
-                  //                   ),
-                  //                 ],
-                  //                 // color: Colors.white.withOpacity(0.50),
-                  //               ),
-                  //               child: Padding(
-                  //                 padding: const EdgeInsets.symmetric(
-                  //                     horizontal: 20, vertical: 20),
-                  //                 child: Column(
-                  //                   children: [
-                  //                     Expanded(
-                  //                       child: Row(
-                  //                         children: [
-                  //                           const Spacer(),
-                  //                           Column(
-                  //                             crossAxisAlignment:
-                  //                                 CrossAxisAlignment.start,
-                  //                             children: [
-                  //                               const Spacer(),
-                  //                               Text(
-                  //                                 "${forecast.aqi}",
-                  //                                 textAlign: TextAlign.center,
-                  //                                 style: TextStyle(
-                  //                                     fontSize: 16,
-                  //                                     color: Colors.black),
-                  //                               ),
-                  //                               const Spacer(),
-                  //                               Text(
-                  //                                 "${forecast.aqi}",
-                  //                                 textAlign: TextAlign.center,
-                  //                                 style: const TextStyle(
-                  //                                   fontSize: 30,
-                  //                                   fontWeight: FontWeight.bold,
-                  //                                   color: Colors.blue,
-                  //                                 ),
-                  //                               ),
-                  //                               const Spacer(),
-                  //                               Text(
-                  //                                 "${forecast.aqi}",
-                  //                                 textAlign: TextAlign.center,
-                  //                                 style: const TextStyle(
-                  //                                     fontSize: 16,
-                  //                                     color: Colors.blue),
-                  //                               ),
-                  //                               const Spacer(),
-                  //                               const Spacer(),
-                  //                             ],
-                  //                           ),
-                  //                           const Spacer(),
-                  //                         ],
-                  //                       ),
-                  //                     ),
-                  //                   ],
-                  //                 ),
-                  //               ),
-                  //             ),
-                  //           );
-                  //         },
-                  //       )
+                                  child: Column(
+                                    mainAxisAlignment: MainAxisAlignment.center,
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.center,
+                                    children: <Widget>[
+                                      const SizedBox(height: 5),
+                                      Text(
+                                        DateFormat('EEE').format(forecast.date),
+                                        style: const TextStyle(
+                                            fontSize: 17, color: Colors.black),
+                                      ),
+                                      const SizedBox(height: 5),
+                                      Image.asset(
+                                        'assets/wind.png',
+                                        fit: BoxFit.cover,
+                                        width: 37,
+                                      ),
+                                      const SizedBox(height: 5),
+                                      Text(
+                                        'AQI: ${forecast.aqi}',
+                                        style: const TextStyle(
+                                            fontSize: 16, color: Colors.blue, fontWeight: FontWeight.bold),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              );
+                            },
+                          ),
+                        ),
                 ],
               ),
             ),

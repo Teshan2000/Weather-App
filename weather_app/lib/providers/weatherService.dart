@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'package:geocoding/geocoding.dart';
 import 'package:geolocator/geolocator.dart';
+import 'package:intl/intl.dart';
 import 'package:weather_app/models/airQualityModel.dart';
 import 'package:weather_app/models/dailyAirQualityModel.dart';
 import 'package:weather_app/models/forecastModel.dart';
@@ -84,13 +85,18 @@ class WeatherService {
     if (response.statusCode == 200) {
       final data = jsonDecode(response.body);
       final List forecasts = data['list'];
-      // final List<dynamic> data = json.decode(response.body)['list'];
-      // List<AirQualityForecast> forecasts = [];
+      Map<String, AirQualityForecast> groupedForecasts = {};
 
-      // for (var item in data) {
-      //   forecasts.add(AirQualityForecast.fromJson(item));
-      // }
-      return forecasts.map((forecast) => AirQualityForecast.fromJson(forecast)).toList();
+      for (var forecast in forecasts) {
+        String date = DateFormat('yyyy-MM-dd')
+            .format(DateTime.fromMillisecondsSinceEpoch(forecast['dt'] * 1000));
+
+        if (!groupedForecasts.containsKey(date)) {
+          groupedForecasts[date] = AirQualityForecast.fromJson(forecast);
+        }
+      }
+      return groupedForecasts.values.toList();
+      // return forecasts.map((forecast) => AirQualityForecast.fromJson(forecast)).toList();
     } else {
       throw Exception('Failed to fetch Air Quality Forecast');
     }
