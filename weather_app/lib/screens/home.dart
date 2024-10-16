@@ -1,6 +1,7 @@
 import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+import 'package:weather_app/models/airQualityModel.dart';
 import 'package:weather_app/models/weatherModel.dart';
 import 'package:weather_app/models/forecastModel.dart';
 import 'package:weather_app/providers/weatherService.dart';
@@ -19,6 +20,7 @@ class _HomeState extends State<Home> {
   final _WeatherService = WeatherService('c3281946b6139602ecabb86fd3e733c2');
   Weather? _weather;
   List<Forecast>? _forecasts;
+  AirQuality? aqiData;
 
   fetchWeather() async {
     String cityName = await _WeatherService.getCurrentCity();
@@ -39,12 +41,13 @@ class _HomeState extends State<Home> {
 
     switch (mainCondition.toLowerCase()) {
       case 'clouds':
+        return 'assets/clouds.png';
       case 'mist':
       case 'smoke':
       case 'haze':
       case 'dust':
       case 'fog':
-        return 'assets/clear.png';
+        return 'assets/mist.png';
       case 'rain':
         return 'assets/rain.png';
       case 'drizzle':
@@ -52,7 +55,7 @@ class _HomeState extends State<Home> {
       case 'shower rain':
         return 'assets/shower.png';
       case 'thunderstorm':
-        return 'assets/thunder run.png';
+        return 'assets/thunder rain.png';
       case 'clear':
         return 'assets/clear.png';
       default:
@@ -95,7 +98,7 @@ class _HomeState extends State<Home> {
           IconButton(
               onPressed: () {
                 Navigator.push(context,
-                    MaterialPageRoute(builder: (context) => AirQualityIndex()));
+                    MaterialPageRoute(builder: (context) => Locations()));
               },
               icon: const Icon(Icons.add_location_alt_outlined))
         ],
@@ -139,7 +142,7 @@ class _HomeState extends State<Home> {
                         style: const TextStyle(fontSize: 18),
                       ),
                     ),
-                    const SizedBox(height: 17),
+                    const SizedBox(height: 20),
                     Center(
                       child: Text(
                         "${_weather?.temperature.round()}°C",
@@ -154,21 +157,23 @@ class _HomeState extends State<Home> {
                         getWeatherAnimation(
                           _weather?.mainCondition,
                         ),
-                        width: 220),
+                        // "assets/drizzle.png",
+                        width: 200),
+                    const SizedBox(height: 15),
                     Center(
                       child: Text(
                         _weather?.mainCondition ?? "",
                         style: const TextStyle(
-                            fontSize: 20,
+                            fontSize: 23,
                             color: Colors.blue,
                             fontWeight: FontWeight.bold),
                       ),
                     ),
-                    const SizedBox(height: 20),
+                    const SizedBox(height: 15),
                     Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 10),
+                      padding: const EdgeInsets.symmetric(horizontal: 5),
                       child: Container(
-                        width: 350,
+                        width: 360,
                         height: 125,
                         decoration: ShapeDecoration(
                           color: Colors.transparent,
@@ -177,12 +182,12 @@ class _HomeState extends State<Home> {
                           ),
                         ),
                         child: Padding(
-                          padding: const EdgeInsets.symmetric(vertical: 10),
+                          padding: const EdgeInsets.only(top: 10.0),
                           child: Row(
                             mainAxisAlignment: MainAxisAlignment.spaceBetween,
                             children: <Widget>[
                               Container(
-                                width: 105,
+                                width: 110,
                                 height: 125,
                                 padding:
                                     const EdgeInsets.symmetric(vertical: 10),
@@ -218,7 +223,7 @@ class _HomeState extends State<Home> {
                               ),
                               const SizedBox(width: 5),
                               Container(
-                                width: 105,
+                                width: 110,
                                 height: 125,
                                 padding:
                                     const EdgeInsets.symmetric(vertical: 10),
@@ -254,7 +259,7 @@ class _HomeState extends State<Home> {
                               ),
                               const SizedBox(width: 5),
                               Container(
-                                width: 105,
+                                width: 110,
                                 height: 125,
                                 padding:
                                     const EdgeInsets.symmetric(vertical: 10),
@@ -300,7 +305,7 @@ class _HomeState extends State<Home> {
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: <Widget>[
                             const Text(
-                              "5 Day Forecasts",
+                              "  5 Day Forecasts",
                               textAlign: TextAlign.start,
                               style: TextStyle(
                                   fontSize: 16, fontWeight: FontWeight.bold),
@@ -342,13 +347,12 @@ class _HomeState extends State<Home> {
                                     width: 77,
                                     height: 260,
                                     decoration: ShapeDecoration(
-                                      color:
-                                          Colors.white.withOpacity(0.5),
+                                      color: Colors.white.withOpacity(0.5),
                                       shape: RoundedRectangleBorder(
-                                        borderRadius: BorderRadius.circular(20),
-                                        side: const BorderSide(
-                                          width: 2.5, color: Colors.white)
-                                      ),
+                                          borderRadius:
+                                              BorderRadius.circular(20),
+                                          side: const BorderSide(
+                                              width: 2.5, color: Colors.white)),
                                     ),
                                     child: Column(
                                       mainAxisAlignment:
@@ -360,7 +364,8 @@ class _HomeState extends State<Home> {
                                           DateFormat('EEE')
                                               .format(forecast.dateTime),
                                           style: const TextStyle(
-                                              fontSize: 15, color: Colors.black),
+                                              fontSize: 15,
+                                              color: Colors.black),
                                         ),
                                         const SizedBox(height: 5),
                                         Image.asset(
@@ -371,7 +376,9 @@ class _HomeState extends State<Home> {
                                         Text(
                                           "${forecast.temperature.round()}°C",
                                           style: const TextStyle(
-                                              fontSize: 15, color: Colors.blue, fontWeight: FontWeight.bold),
+                                              fontSize: 15,
+                                              color: Colors.blue,
+                                              fontWeight: FontWeight.bold),
                                         ),
                                         const SizedBox(height: 5),
                                         Text(
@@ -389,7 +396,351 @@ class _HomeState extends State<Home> {
                         : Center(child: CircularProgressIndicator()),
                   ],
                 ),
-              )
+              ),
+              const SizedBox(height: 20),
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 10),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                  children: <Widget>[
+                    Container(
+                      width: 165,
+                      height: 105,
+                      padding: const EdgeInsets.symmetric(vertical: 10),
+                      decoration: ShapeDecoration(
+                        color: Colors.white.withOpacity(0.5),
+                        shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(15),
+                            side: const BorderSide(
+                                width: 2.5, color: Colors.white)),
+                      ),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.center,
+                        children: [
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceAround,
+                            children: [
+                              const Text(
+                                "Min",
+                                style: TextStyle(fontSize: 15),
+                              ),
+                              Image.asset(
+                                'assets/water.png',
+                                fit: BoxFit.contain,
+                                width: 35,
+                              ),
+                              Text(
+                                "${_weather?.minTemp.round()}°C",
+                                style: TextStyle(
+                                  fontSize: 15,
+                                ),
+                              ),
+                            ],
+                          ),
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceAround,
+                            children: [
+                              const Text(
+                                "Max",
+                                style: TextStyle(fontSize: 15),
+                              ),
+                              Image.asset(
+                                'assets/water.png',
+                                fit: BoxFit.contain,
+                                width: 35,
+                              ),
+                              Text(
+                                "${_weather?.maxTemp.round()}°C",
+                                style: TextStyle(
+                                  fontSize: 15,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(width: 5),
+                    Container(
+                      width: 165,
+                      height: 105,
+                      padding: const EdgeInsets.symmetric(vertical: 10),
+                      decoration: ShapeDecoration(
+                        color: Colors.white.withOpacity(0.5),
+                        shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(15),
+                            side: const BorderSide(
+                                width: 2.5, color: Colors.white)),
+                      ),
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.spaceAround,
+                        children: [
+                          _weather != null ?
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceAround,
+                            children: [
+                              const Text(
+                                "Sunrise",
+                                style: TextStyle(fontSize: 15),
+                              ),
+                              Image.asset(
+                                'assets/clear.png',
+                                fit: BoxFit.contain,
+                                width: 35,
+                              ),
+                              Text(
+                                "${DateFormat('HH:mm').format(DateTime.fromMillisecondsSinceEpoch(_weather!.sunrise*1000).toLocal())}",
+                                style: TextStyle(
+                                  fontSize: 15,
+                                ),
+                              ),
+                            ],
+                          ) : Center(child: CircularProgressIndicator()),
+                          _weather != null ?
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceAround,
+                            children: [
+                              const Text(
+                                "Sunset",
+                                style: TextStyle(fontSize: 15),
+                              ),
+                              Image.asset(
+                                'assets/clear.png',
+                                fit: BoxFit.contain,
+                                width: 35,
+                              ),
+                              Text(
+                                "${DateFormat('HH:mm').format(DateTime.fromMillisecondsSinceEpoch(_weather!.sunset*1000).toLocal())}",
+                                style: TextStyle(
+                                  fontSize: 15,
+                                ),
+                              ),
+                            ],
+                          ) : Center(child: CircularProgressIndicator()),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(height: 15),
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 10),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                  children: <Widget>[
+                    Container(
+                      width: 165,
+                      height: 65,
+                      padding: const EdgeInsets.symmetric(vertical: 10),
+                      decoration: ShapeDecoration(
+                        color: Colors.white.withOpacity(0.5),
+                        shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(15),
+                            side: const BorderSide(
+                                width: 2.5, color: Colors.white)),
+                      ),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceAround,
+                        children: [
+                          const Text(
+                            "Feels Like",
+                            style: TextStyle(fontSize: 15),
+                          ),
+                          Image.asset(
+                            'assets/clear.png',
+                            fit: BoxFit.contain,
+                            width: 35,
+                          ),
+                          Text(
+                            "${_weather?.feelsLike.round()}°C",
+                            style: TextStyle(
+                              fontSize: 15,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(width: 5),
+                    Container(
+                      width: 165,
+                      height: 65,
+                      padding: const EdgeInsets.symmetric(vertical: 10),
+                      decoration: ShapeDecoration(
+                        color: Colors.white.withOpacity(0.5),
+                        shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(15),
+                            side: const BorderSide(
+                                width: 2.5, color: Colors.white)),
+                      ),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceAround,
+                        children: [
+                          const Text(
+                            "UV Index",
+                            style: TextStyle(fontSize: 15),
+                          ),
+                          Image.asset(
+                            'assets/sun.png',
+                            fit: BoxFit.contain,
+                            width: 28,
+                          ),
+                          const Text(
+                            "4",
+                            style: TextStyle(
+                              fontSize: 15,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(height: 15),
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 10),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                  children: <Widget>[
+                    Container(
+                      width: 165,
+                      height: 65,
+                      padding: const EdgeInsets.symmetric(vertical: 10),
+                      decoration: ShapeDecoration(
+                        color: Colors.white.withOpacity(0.5),
+                        shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(15),
+                            side: const BorderSide(
+                                width: 2.5, color: Colors.white)),
+                      ),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceAround,
+                        children: [
+                          const Text(
+                            "Cloudiness",
+                            style: TextStyle(fontSize: 15),
+                          ),
+                          Image.asset(
+                            'assets/clouds.png',
+                            fit: BoxFit.contain,
+                            width: 35,
+                          ),
+                          Text(
+                            "${_weather?.cloudiness}%",
+                            style: TextStyle(
+                              fontSize: 15,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(width: 5),
+                    Container(
+                      width: 165,
+                      height: 65,
+                      padding: const EdgeInsets.symmetric(vertical: 10),
+                      decoration: ShapeDecoration(
+                        color: Colors.white.withOpacity(0.5),
+                        shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(15),
+                            side: const BorderSide(
+                                width: 2.5, color: Colors.white)),
+                      ),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceAround,
+                        children: [
+                          const Text(
+                            "Visibility",
+                            style: TextStyle(fontSize: 15),
+                          ),
+                          Image.asset(
+                            'assets/clouds.png',
+                            fit: BoxFit.contain,
+                            width: 35,
+                          ),
+                           _weather != null ?
+                          Text(
+                            "${(_weather!.visibility/1000).round()} km",
+                            style: TextStyle(
+                              fontSize: 15,
+                            ),
+                          ) : Center(child: CircularProgressIndicator()),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(height: 15),
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 10),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                  children: <Widget>[
+                    Container(
+                      // width: MediaQuery.of(context).size.width * 0.90,
+                      width: 350,
+                      height: 65,
+                      padding: const EdgeInsets.symmetric(vertical: 10),
+                      decoration: ShapeDecoration(
+                        color: Colors.white.withOpacity(0.5),
+                        shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(15),
+                            side: const BorderSide(
+                                width: 2.5, color: Colors.white)),
+                      ),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceAround,
+                        children: [
+                          const Text(
+                            "Air Quality Index",
+                            style: TextStyle(fontSize: 15),
+                          ),
+                          Image.asset(
+                            'assets/wind.png',
+                            fit: BoxFit.contain,
+                            width: 35,
+                          ),
+                          const Text(
+                            "1",
+                            style: TextStyle(
+                              fontSize: 15,
+                            ),
+                          ),
+                          Row(
+                            children: [
+                              TextButton(
+                                child: const Text(
+                                  "More",
+                                  style: TextStyle(
+                                    fontSize: 16,
+                                    color: Colors.blue,
+                                  ),
+                                ),
+                                onPressed: () {
+                                  Navigator.push(
+                                      context,
+                                      MaterialPageRoute(
+                                          builder: (context) =>
+                                              const AirQualityIndex()));
+                                },
+                              ),
+                              const SizedBox(width: 3),
+                              const Icon(
+                                Icons.arrow_forward_ios,
+                                size: 13,
+                                color: Colors.blue,
+                              )
+                            ],
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(height: 25),
             ],
           ),
         ),
