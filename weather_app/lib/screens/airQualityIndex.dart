@@ -315,9 +315,10 @@ class _AirQualityIndexState extends State<AirQualityIndex> {
                       ? Center(child: CircularProgressIndicator())
                       : Container(
                           padding: const EdgeInsets.symmetric(
-                              horizontal: 10, vertical: 10),
+                              horizontal: 0, vertical: 10),
                           height: 130,
                           child: ListView.builder(
+                            padding: EdgeInsets.symmetric(horizontal: 12),
                             shrinkWrap: true,
                             scrollDirection: Axis.horizontal,
                             itemCount: forecasts?.length ?? 0,

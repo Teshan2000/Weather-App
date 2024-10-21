@@ -23,13 +23,13 @@ class _LocationsState extends State<Locations> {
 
     switch (mainCondition.toLowerCase()) {
       case 'clouds':
-        return 'assets/clear.png';
+        return 'assets/clouds.png';
       case 'mist':
       case 'smoke':
       case 'haze':
       case 'dust':
       case 'fog':
-        return 'assets/clear.png';
+        return 'assets/mist.png';
       case 'rain':
         return 'assets/rain.png';
       case 'drizzle':
@@ -37,7 +37,7 @@ class _LocationsState extends State<Locations> {
       case 'shower rain':
         return 'assets/shower.png';
       case 'thunderstorm':
-        return 'assets/thunder run.png';
+        return 'assets/thunder rain.png';
       case 'clear':
         return 'assets/clear.png';
       default:
@@ -157,26 +157,31 @@ class _LocationsState extends State<Locations> {
                       hintText: 'Enter city name',
                       labelText: 'Enter city name',
                       alignLabelWithHint: true,
+                      fillColor: Colors.white.withOpacity(0.5),
+                      filled: true,
                       suffixIcon: IconButton(
                         icon: const Icon(Icons.search),
                         onPressed: () {
                           _onCitySelected(_cityController.text);
                         },
                       ),
-                      suffixIconColor: Colors.deepPurple,
+                      suffixIconColor: Colors.blue,
                       enabledBorder: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(10),
+                        borderSide: const BorderSide(
+                          color: Colors.white, width: 2.5,
+                        ),
                       ),
                       focusedBorder: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(10),
                         borderSide: const BorderSide(
-                          color: Colors.deepPurple,
+                          color: Colors.white, width: 2.5,
                         ),
                       ),
                       errorBorder: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(10),
                         borderSide: const BorderSide(
-                          color: Colors.red,
+                          color: Colors.red, width: 2.5,
                         ),
                       ),
                     ),
