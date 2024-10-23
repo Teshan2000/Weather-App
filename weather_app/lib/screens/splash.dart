@@ -12,10 +12,72 @@ class SplashScreen extends StatefulWidget {
 }
 
 class SplashScreenState extends State<SplashScreen> {
+  late StreamSubscription<ConnectivityResult> _connectivitySubscription;
+  bool isConnected = false;
+
   @override
   void initState() {
     super.initState();
     startSplashTimer();
+    _checkConnection();
+    _navigateToHome();
+  }
+
+  void _checkConnection() async {
+    var connectivityResult = await (Connectivity().checkConnectivity());
+    _updateConnectionStatus(connectivityResult);
+
+    // Listen for connection changes
+    _connectivitySubscription = Connectivity().onConnectivityChanged.listen(_updateConnectionStatus);
+  }
+
+  void _updateConnectionStatus(ConnectivityResult result) {
+    setState(() {
+      if (result == ConnectivityResult.mobile || result == ConnectivityResult.wifi) {
+        isConnected = true;
+      } else {
+        isConnected = false;
+      }
+    });
+  }
+
+  void _navigateToHome() async {
+    // Simulate loading for 3 seconds
+    await Future.delayed(const Duration(seconds: 3));
+
+    // Check if connected before navigating
+    if (isConnected) {
+      Navigator.pushReplacementNamed(context, '/home');
+    } else {
+      _showNoConnectionDialog();
+    }
+  }
+
+  void _showNoConnectionDialog() {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: const Text("No Internet Connection"),
+          content: const Text("Please check your internet connection and try again."),
+          actions: [
+            TextButton(
+              onPressed: () {
+                Navigator.of(context).pop();
+                _checkConnection();
+              },
+              child: const Text("Retry"),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  @override
+  void dispose() {
+    _connectivitySubscription.cancel();
+    super.dispose();
   }
 
   void startSplashTimer() {
