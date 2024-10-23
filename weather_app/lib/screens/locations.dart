@@ -87,7 +87,7 @@ class _LocationsState extends State<Locations> {
       'Jaffna',
       'Sydney',
       'England',
-      'Tokoyo'
+      'Tokyo'
     ];
 
     setState(() {
@@ -144,48 +144,77 @@ class _LocationsState extends State<Locations> {
         )),
         child: SingleChildScrollView(
           child: Padding(
-            padding: const EdgeInsets.all(15),
+            padding: const EdgeInsets.all(0),
             child: SafeArea(
               child: Column(
                 children: [
                   const SizedBox(
                     height: 10,
                   ),
-                  TextFormField(
-                    controller: _cityController,
-                    decoration: InputDecoration(
-                      hintText: 'Enter city name',
-                      labelText: 'Enter city name',
-                      alignLabelWithHint: true,
-                      fillColor: Colors.white.withOpacity(0.5),
-                      filled: true,
-                      suffixIcon: IconButton(
-                        icon: const Icon(Icons.search),
-                        onPressed: () {
-                          _onCitySelected(_cityController.text);
-                        },
+                  Container(
+                    width: double.infinity,
+                    decoration: ShapeDecoration(
+                      shape: const RoundedRectangleBorder(
+                        borderRadius: BorderRadius.only(
+                            bottomLeft: Radius.circular(20),
+                            bottomRight: Radius.circular(20)),
                       ),
-                      suffixIconColor: Colors.blue,
-                      enabledBorder: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(10),
-                        borderSide: const BorderSide(
-                          color: Colors.white, width: 2.5,
-                        ),
+                      image: DecorationImage(
+                        image: AssetImage('assets/background.png'),
+                        fit: BoxFit.cover,
                       ),
-                      focusedBorder: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(10),
-                        borderSide: const BorderSide(
-                          color: Colors.white, width: 2.5,
+                      shadows: [
+                        BoxShadow(
+                          color: Colors.blue.withOpacity(0.5),
+                          // spreadRadius: 3,
+                          blurRadius: 7,
+                          offset: Offset(0, 6),
                         ),
-                      ),
-                      errorBorder: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(10),
-                        borderSide: const BorderSide(
-                          color: Colors.red, width: 2.5,
+                      ],
+                      // color: Colors.white.withOpacity(0.50),
+                    ),
+                    child: Padding(
+                      padding: const EdgeInsets.only(
+                          left: 20, right: 20, top: 25, bottom: 30),
+                      child: TextFormField(
+                        controller: _cityController,
+                        decoration: InputDecoration(
+                          hintText: 'Enter city name',
+                          alignLabelWithHint: true,
+                          fillColor: Colors.white.withOpacity(0.5),
+                          filled: true,
+                          suffixIcon: IconButton(
+                            icon: const Icon(Icons.search),
+                            onPressed: () {
+                              _onCitySelected(_cityController.text);
+                            },
+                          ),
+                          suffixIconColor: Colors.blue,
+                          enabledBorder: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(10),
+                            borderSide: const BorderSide(
+                              color: Colors.white,
+                              width: 2.5,
+                            ),
+                          ),
+                          focusedBorder: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(10),
+                            borderSide: const BorderSide(
+                              color: Colors.white,
+                              width: 2.5,
+                            ),
+                          ),
+                          errorBorder: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(10),
+                            borderSide: const BorderSide(
+                              color: Colors.red,
+                              width: 2.5,
+                            ),
+                          ),
                         ),
+                        onChanged: _onCityChanged,
                       ),
                     ),
-                    onChanged: _onCityChanged,
                   ),
                   const SizedBox(
                     height: 10,
@@ -213,7 +242,7 @@ class _LocationsState extends State<Locations> {
                         final weather = _addedCitiesWeather[index];
                         return Padding(
                             padding: const EdgeInsets.symmetric(
-                                horizontal: 10, vertical: 10),
+                                horizontal: 20, vertical: 0),
                             child: Container(
                               decoration: ShapeDecoration(
                                 shape: RoundedRectangleBorder(
@@ -236,12 +265,12 @@ class _LocationsState extends State<Locations> {
                                       ),
                                       const Spacer(),
                                       Image.asset(
-                                        getWeatherAnimation(
-                                          weather.mainCondition),
+                                          getWeatherAnimation(
+                                              weather.mainCondition),
                                           width: 30),
                                       const Spacer(),
                                       Text(
-                                        '${weather.temperature.toStringAsFixed(1)}°C',
+                                        "${weather.temperature.round()}°C",
                                         textAlign: TextAlign.center,
                                         style: const TextStyle(
                                           fontSize: 22,
@@ -250,8 +279,16 @@ class _LocationsState extends State<Locations> {
                                         ),
                                       ),
                                       const Spacer(),
+                                      Text(
+                                        weather.mainCondition,
+                                        textAlign: TextAlign.center,
+                                        style: const TextStyle(
+                                            fontSize: 16, color: Colors.blue),
+                                      ),
+                                      const Spacer(),
                                       IconButton(
                                         icon: const Icon(Icons.cancel),
+                                        color: Colors.red,
                                         onPressed: () {
                                           _removeCity(index);
                                         },

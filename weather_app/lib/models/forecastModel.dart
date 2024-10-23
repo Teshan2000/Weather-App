@@ -5,6 +5,7 @@ class Forecast {
   final int pressure;
   final double windSpeed;
   final String mainCondition;
+  final double? pop;
 
   Forecast({
     required this.dateTime,
@@ -13,6 +14,7 @@ class Forecast {
     required this.pressure,
     required this.windSpeed,
     required this.mainCondition,
+    this.pop,
   });
 
   factory Forecast.fromJson(Map<String, dynamic> json) {
@@ -23,6 +25,7 @@ class Forecast {
       pressure: json['main']['pressure'].toInt(),
       windSpeed: json['wind']['speed'].toDouble(),
       mainCondition: json['weather'][0]['main'],
+      pop: json.containsKey('pop') ? json['pop'].toDouble() : null,
     );
   }
 }
