@@ -4,6 +4,8 @@ import 'package:weather_app/providers/weatherService.dart';
 import 'package:weather_app/models/weatherModel.dart';
 import 'dart:convert';
 
+import 'package:weather_app/screens/cityWeather.dart';
+
 class Locations extends StatefulWidget {
   const Locations({super.key});
 
@@ -14,7 +16,7 @@ class Locations extends StatefulWidget {
 class _LocationsState extends State<Locations> {
   final TextEditingController _cityController = TextEditingController();
   final _WeatherService = WeatherService('c3281946b6139602ecabb86fd3e733c2');
-  Weather? _weather;
+  // Weather? _weather;
   List<String> _suggestions = [];
   List<Weather> _addedCitiesWeather = [];
 
@@ -84,10 +86,15 @@ class _LocationsState extends State<Locations> {
 
     List<String> suggestions = [
       'Colombo',
-      'Jaffna',
+      'Kandy',
+      'New York',
+      'Africa',
       'Sydney',
-      'England',
-      'Tokyo'
+      'Egypt',
+      'London',
+      'Brazil',
+      'Tokyo',
+      'France',
     ];
 
     setState(() {
@@ -124,7 +131,7 @@ class _LocationsState extends State<Locations> {
       extendBodyBehindAppBar: true,
       appBar: AppBar(
         elevation: 0,
-        backgroundColor: Colors.transparent,
+        backgroundColor: Colors.transparent,        
         title: const Center(
           child: Text("Add more cities"),
         ),
@@ -240,64 +247,85 @@ class _LocationsState extends State<Locations> {
                       itemCount: _addedCitiesWeather.length,
                       itemBuilder: (context, index) {
                         final weather = _addedCitiesWeather[index];
-                        return Padding(
-                            padding: const EdgeInsets.symmetric(
-                                horizontal: 20, vertical: 0),
-                            child: Container(
-                              decoration: ShapeDecoration(
-                                shape: RoundedRectangleBorder(
-                                    borderRadius: BorderRadius.circular(15),
-                                    side: const BorderSide(
-                                        width: 2.5, color: Colors.white)),
-                                color: Colors.white.withOpacity(0.50),
-                              ),
-                              child: Padding(
-                                padding: const EdgeInsets.symmetric(
-                                    horizontal: 15, vertical: 15),
-                                child: Center(
-                                  child: Row(
-                                    children: [
-                                      Text(
-                                        weather.cityName,
-                                        textAlign: TextAlign.center,
-                                        style: const TextStyle(
-                                            fontSize: 20, color: Colors.blue),
-                                      ),
-                                      const Spacer(),
-                                      Image.asset(
-                                          getWeatherAnimation(
-                                              weather.mainCondition),
-                                          width: 30),
-                                      const Spacer(),
-                                      Text(
-                                        "${weather.temperature.round()}°C",
-                                        textAlign: TextAlign.center,
-                                        style: const TextStyle(
-                                          fontSize: 22,
-                                          fontWeight: FontWeight.bold,
-                                          color: Colors.blue,
+                        return GestureDetector(
+                          child: Padding(
+                              padding: const EdgeInsets.symmetric(
+                                  horizontal: 15, vertical: 10),
+                              child: Container(
+                                decoration: ShapeDecoration(
+                                  shape: RoundedRectangleBorder(
+                                      borderRadius: BorderRadius.circular(15),
+                                      side: const BorderSide(
+                                          width: 2.5, color: Colors.white)),
+                                  color: Colors.white.withOpacity(0.50),
+                                ),
+                                child: Padding(
+                                  padding: const EdgeInsets.symmetric(
+                                      horizontal: 15, vertical: 15),
+                                  child: Center(
+                                    child: Row(
+                                      mainAxisAlignment:
+                                          MainAxisAlignment.spaceBetween,
+                                      children: [
+                                        Text(
+                                          weather.cityName,
+                                          textAlign: TextAlign.center,
+                                          style: const TextStyle(
+                                              fontSize: 20,
+                                              color: Colors.black),
                                         ),
-                                      ),
-                                      const Spacer(),
-                                      Text(
-                                        weather.mainCondition,
-                                        textAlign: TextAlign.center,
-                                        style: const TextStyle(
-                                            fontSize: 16, color: Colors.blue),
-                                      ),
-                                      const Spacer(),
-                                      IconButton(
-                                        icon: const Icon(Icons.cancel),
-                                        color: Colors.red,
-                                        onPressed: () {
-                                          _removeCity(index);
-                                        },
-                                      ),
-                                    ],
+                                        SizedBox(
+                                          width: 20,
+                                        ),
+                                        Text(
+                                          "${weather.temperature.round()}°C",
+                                          textAlign: TextAlign.center,
+                                          style: const TextStyle(
+                                            fontSize: 22,
+                                            fontWeight: FontWeight.bold,
+                                            color: Colors.blue,
+                                          ),
+                                        ),
+                                        SizedBox(
+                                          width: 20,
+                                        ),
+                                        Image.asset(
+                                            getWeatherAnimation(
+                                                weather.mainCondition),
+                                            width: 30),
+                                        SizedBox(
+                                          width: 20,
+                                        ),
+                                        Text(
+                                          weather.mainCondition,
+                                          textAlign: TextAlign.center,
+                                          style: const TextStyle(
+                                              fontSize: 17, color: Colors.blue),
+                                        ),
+                                        SizedBox(
+                                          width: 10,
+                                        ),
+                                        IconButton(
+                                          icon: const Icon(Icons.cancel),
+                                          color: Colors.red,
+                                          onPressed: () {
+                                            _removeCity(index);
+                                          },
+                                        ),
+                                      ],
+                                    ),
                                   ),
                                 ),
-                              ),
-                            ));
+                              )),
+                          onTap: () {
+                            Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                    builder: (context) => CityWeather(
+                                          cityName: weather.cityName,
+                                        )));
+                          },
+                        );
                       },
                     ),
                 ],
