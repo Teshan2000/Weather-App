@@ -23,6 +23,7 @@ class _HomeState extends State<Home> {
   Weather? _weather;
   List<Forecast>? _forecasts;
   AirQuality? aqiData;
+  late final int windDirection;
 
   fetchWeather() async {
     String cityName = await _WeatherService.getCurrentCity();
@@ -62,6 +63,28 @@ class _HomeState extends State<Home> {
         return 'assets/clear.png';
       default:
         return 'assets/clear.png';
+    }
+  }
+
+  String getWindDirection(int degrees) {
+    if (degrees >= 337.5 || degrees < 22.5) {
+      return 'North';
+    } else if (degrees >= 22.5 && degrees < 67.5) {
+      return 'North-East';
+    } else if (degrees >= 67.5 && degrees < 112.5) {
+      return 'East';
+    } else if (degrees >= 112.5 && degrees < 157.5) {
+      return 'South-East';
+    } else if (degrees >= 157.5 && degrees < 202.5) {
+      return 'South';
+    } else if (degrees >= 202.5 && degrees < 247.5) {
+      return 'South-West';
+    } else if (degrees >= 247.5 && degrees < 292.5) {
+      return 'West';
+    } else if (degrees >= 292.5 && degrees < 337.5) {
+      return 'North-West';
+    } else {
+      return 'Unknown';
     }
   }
 
@@ -631,7 +654,9 @@ class _HomeState extends State<Home> {
                           Column(
                             children: [
                               Lottie.asset('assets/sun animation.json',
-                                  fit: BoxFit.fitHeight, width: 215, height: 70),
+                                  fit: BoxFit.fitHeight,
+                                  width: 215,
+                                  height: 70),
                             ],
                           ),
                           _weather != null
@@ -664,7 +689,65 @@ class _HomeState extends State<Home> {
                   ],
                 ),
               ),
-              const SizedBox(height: 20),
+              const SizedBox(height: 15),
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 12),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                  children: <Widget>[
+                    Container(
+                      // width: MediaQuery.of(context).size.width * 0.90,
+                      width: 360,
+                      height: 65,
+                      padding: const EdgeInsets.symmetric(vertical: 10),
+                      decoration: ShapeDecoration(
+                        color: Colors.white.withOpacity(0.5),
+                        shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(15),
+                            side: const BorderSide(
+                                width: 2.5, color: Colors.white)),
+                      ),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceAround,
+                        children: [
+                          const Text(
+                            "Gust",
+                            style: TextStyle(fontSize: 15),
+                          ),
+                          Image.asset(
+                            'assets/wind.png',
+                            fit: BoxFit.contain,
+                            width: 45,
+                          ),
+                          Text(
+                            "${_weather?.windDirection}" ??
+                                "null",
+                            style: TextStyle(
+                              fontSize: 15,
+                            ),
+                          ),
+                          Transform.rotate(
+                            angle: windDirection * (3.1416 / 180),
+                            child: Icon(
+                              Icons.arrow_right_alt,
+                              size: 30,
+                              color: Colors.blue,
+                            ),
+                          ),
+                          Text(
+                            "13 km/h",
+                            style: TextStyle(
+                                fontSize: 15,
+                                color: Colors.blue,
+                                fontWeight: FontWeight.bold),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(height: 15),
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 10),
                 child: Row(
