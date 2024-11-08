@@ -23,10 +23,11 @@ class _AirQualityIndexState extends State<AirQualityIndex> {
   @override
   void initState() {
     super.initState();
-    fetchAirQualityData('Kandy');
+    fetchAirQualityData();
   }
 
-  Future<void> fetchAirQualityData(String cityName) async {
+  Future<void> fetchAirQualityData() async {
+    String cityName = await _WeatherService.getCurrentCity();
     setState(() {
       isLoading = true;
     });
@@ -54,25 +55,82 @@ class _AirQualityIndexState extends State<AirQualityIndex> {
     }
   }
 
-  String airQualityDescription(int? aqi) {
+  Map<String, String> airQualityDescription(int? aqi) {
     if (aqi == null)
-      return "Air Quality cannot be measureed. No internet connection";
+      return {
+        "image": "assets/rainbow.png",
+        "value": "Air Quality cannot be measured",
+        "description": "No internet connection",
+      };
 
     switch (aqi) {
       case 1:
-        return "Air Quality is Good. " "A Perfect day for a walk";
+        return {
+          "image": "assets/rainbow.png",
+          "value": "Good",
+          "description": "A Perfect day for a walk",
+        };
       case 2:
-        return "Air Quality is Fair. Should wear a mask in outdoor";
+        return {
+          "image": "assets/rainbow.png",
+          "value": "Fair",
+          "description": "Great for outdoor activities",
+        };
       case 3:
-        return "Air Quality is Moderate. Should stay at home";
+        return {
+          "image": "assets/mist.png",
+          "value": "Moderate",
+          "description": "Should wear a mask in outdoor",
+        };
       case 4:
-        return "Air Quality is Poor. Not good for your health";
+        return {
+          "image": "assets/mist.png",
+          "value": "Poor",
+          "description": "Should stay at home",
+        };
       case 5:
-        return "Air Quality is Very Poor. Might cause severe health issues";
+        return {
+          "image": "assets/mist.png",
+          "value": "Unhealthy",
+          "description": "Might cause severe health issues",
+        };
       default:
-        return "Air Quality data is unavailable.";
+        return {
+          "image": "assets/rainbow.png",
+          "value": "Air Quality data is unavailable",
+          "description": "No internet connection",
+        };
     }
   }
+
+  String airQualityForecastDescription(int? aqi) {
+    if (aqi == null) return "No internet connection";
+
+    switch (aqi) {
+      case 1:
+        return "Good";
+      case 2:
+        return "Fair";
+      case 3:
+        return "Moderate";
+      case 4:
+        return "Poor";
+      case 5:
+        return "Unhealthy";
+      default:
+        return "Unavailable";
+    }
+  }
+
+  // String rainPrecipitation(int? aqi) {
+  //   if (aqi! <= 2) {
+  //     return "assets/rainbow.png";
+  //   } else if (aqi == null) {
+  //     return "assets/rainbow.png";
+  //   } else {
+  //     return "assets/mist.png";
+  //   }
+  // }
 
   @override
   Widget build(BuildContext context) {
@@ -104,11 +162,12 @@ class _AirQualityIndexState extends State<AirQualityIndex> {
                     shrinkWrap: true,
                     itemCount: 1,
                     itemBuilder: (context, index) {
+                      final airQuality = airQualityDescription(aqiData?.aqi);
                       return Padding(
                         padding: const EdgeInsets.symmetric(
                             horizontal: 0, vertical: 0),
                         child: Container(
-                          height: 500,
+                          height: 510,
                           width: double.infinity,
                           decoration: ShapeDecoration(
                             shape: const RoundedRectangleBorder(
@@ -123,35 +182,27 @@ class _AirQualityIndexState extends State<AirQualityIndex> {
                             shadows: [
                               BoxShadow(
                                 color: Colors.blue.withOpacity(0.5),
-                                // spreadRadius: 3,
                                 blurRadius: 7,
                                 offset: const Offset(0, 6),
                               ),
                             ],
-                            // color: Colors.white.withOpacity(0.50),
                           ),
                           child: Padding(
                             padding: const EdgeInsets.symmetric(
-                                horizontal: 20, vertical: 20),
+                                horizontal: 20, vertical: 10),
                             child: Column(
                               children: [
-                                Container(
-                                  width: 290,
-                                  decoration: ShapeDecoration(
-                                    shape: RoundedRectangleBorder(
-                                        borderRadius: BorderRadius.circular(15),
-                                        side: const BorderSide(
-                                            width: 2.5, color: Colors.white)),
-                                    color: Colors.white.withOpacity(0.50),
-                                  ),
-                                  child: Padding(
-                                    padding: const EdgeInsets.symmetric(
-                                        horizontal: 30, vertical: 5),
-                                    child: Center(
-                                      child: Row(
+                                Expanded(
+                                  child: Row(
+                                    children: [
+                                      const Spacer(),
+                                      const Spacer(),
+                                      Column(
+                                        crossAxisAlignment:
+                                            CrossAxisAlignment.start,
                                         children: [
                                           const Spacer(),
-                                          const Text(
+                                          Text(
                                             "Air Quality Index",
                                             textAlign: TextAlign.center,
                                             style: TextStyle(
@@ -159,30 +210,56 @@ class _AirQualityIndexState extends State<AirQualityIndex> {
                                                 color: Colors.black),
                                           ),
                                           const Spacer(),
-                                          Image.asset(
-                                            'assets/wind.png',
-                                            fit: BoxFit.cover,
-                                            width: 60,
+                                          Text(
+                                            "${airQuality["value"]}",
+                                            textAlign: TextAlign.center,
+                                            style: const TextStyle(
+                                              fontSize: 25,
+                                              fontWeight: FontWeight.bold,
+                                              color: Colors.blue,
+                                            ),
                                           ),
+                                          const Spacer(),
+                                        ],
+                                      ),
+                                      const Spacer(),
+                                      const Spacer(),
+                                      const Spacer(),
+                                      Column(
+                                        children: [
+                                          const Spacer(),
+                                          const Spacer(),
                                           const Spacer(),
                                           Text(
                                             aqiData != null
                                                 ? aqiData!.aqi.toString()
                                                 : 'Loading...',
                                             textAlign: TextAlign.center,
-                                            style: TextStyle(
-                                                fontSize: 16,
-                                                color: Colors.black),
+                                            style: const TextStyle(
+                                              fontSize: 50,
+                                              fontWeight: FontWeight.bold,
+                                              color: Colors.blue,
+                                            ),
                                           ),
+                                        ],
+                                      ),
+                                      const Spacer(),
+                                      const Spacer(),
+                                      Column(
+                                        children: [
+                                          const Spacer(),
+                                          Image.asset('assets/wind.png',
+                                              width: 120),
                                           const Spacer(),
                                         ],
                                       ),
-                                    ),
+                                      const Spacer(),
+                                    ],
                                   ),
                                 ),
                                 const SizedBox(height: 15),
                                 Container(
-                                  width: 360,
+                                  width: 330,
                                   decoration: ShapeDecoration(
                                     shape: RoundedRectangleBorder(
                                         borderRadius: BorderRadius.circular(15),
@@ -192,17 +269,19 @@ class _AirQualityIndexState extends State<AirQualityIndex> {
                                   ),
                                   child: Padding(
                                     padding: const EdgeInsets.symmetric(
-                                        horizontal: 0, vertical: 12),
+                                        horizontal: 20, vertical: 10),
                                     child: Center(
                                       child: Row(
                                         children: [
+                                          Image.asset(
+                                            "${airQuality["image"]}",
+                                            fit: BoxFit.fitWidth,
+                                            height: 32,
+                                          ),
                                           const Spacer(),
                                           Container(
-                                            // width: 280,
                                             child: Text(
-                                              airQualityDescription(
-                                                  aqiData?.aqi),
-                                              // textAlign: TextAlign.justify,
+                                              "${airQuality["description"]}",
                                               style: TextStyle(
                                                   fontSize: 16,
                                                   color: Colors.black),
@@ -214,12 +293,13 @@ class _AirQualityIndexState extends State<AirQualityIndex> {
                                     ),
                                   ),
                                 ),
-                                const SizedBox(height: 25),
+                                const SizedBox(height: 20),
                                 isLoading
                                     ? Center(child: CircularProgressIndicator())
                                     : SfCircularChart(
                                         title: ChartTitle(
-                                            text: 'Air Quality Components (µg/m³)'),
+                                            text:
+                                                'Air Quality Components (µg/m³)'),
                                         legend: Legend(
                                             isVisible: true,
                                             isResponsive: true,
@@ -240,17 +320,17 @@ class _AirQualityIndexState extends State<AirQualityIndex> {
                                                     ChartData(
                                                         'NO', aqiData!.no),
                                                     ChartData(
-                                                        'NO2', aqiData!.no2),
+                                                        'NO₂', aqiData!.no2),
                                                     ChartData(
-                                                        'O3', aqiData!.o3),
+                                                        'O₃', aqiData!.o3),
                                                     ChartData(
-                                                        'SO2', aqiData!.so2),
+                                                        'SO₂', aqiData!.so2),
                                                     ChartData('PM2.5',
                                                         aqiData!.pm2_5),
                                                     ChartData(
                                                         'PM10', aqiData!.pm10),
                                                     ChartData(
-                                                        'NH3', aqiData!.nh3),
+                                                        'NH₃', aqiData!.nh3),
                                                   ],
                                                   xValueMapper:
                                                       (ChartData data, _) =>
@@ -269,12 +349,12 @@ class _AirQualityIndexState extends State<AirQualityIndex> {
                                                   dataSource: [
                                                     ChartData('CO', 2),
                                                     ChartData('NO', 2),
-                                                    ChartData('NO2', 2),
-                                                    ChartData('O3', 2),
-                                                    ChartData('SO2', 2),
+                                                    ChartData('NO₂', 2),
+                                                    ChartData('O₃', 2),
+                                                    ChartData('SO₂', 2),
                                                     ChartData('PM2.5', 2),
                                                     ChartData('PM10', 2),
-                                                    ChartData('NH3', 2),
+                                                    ChartData('NH₃', 2),
                                                   ],
                                                   xValueMapper:
                                                       (ChartData data, _) =>
@@ -296,7 +376,7 @@ class _AirQualityIndexState extends State<AirQualityIndex> {
                       );
                     },
                   ),
-                  const SizedBox(height: 30),
+                  const SizedBox(height: 25),
                   Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 20),
                     child: Row(
@@ -310,7 +390,7 @@ class _AirQualityIndexState extends State<AirQualityIndex> {
                           ),
                         ]),
                   ),
-                  const SizedBox(height: 15),
+                  const SizedBox(height: 10),
                   isLoading
                       ? Center(child: CircularProgressIndicator())
                       : Container(
@@ -321,14 +401,16 @@ class _AirQualityIndexState extends State<AirQualityIndex> {
                             padding: EdgeInsets.symmetric(horizontal: 12),
                             shrinkWrap: true,
                             scrollDirection: Axis.horizontal,
-                            itemCount: forecasts?.length ?? 0,
+                            itemCount: 5,
                             itemBuilder: (context, index) {
-                              final forecast = forecasts![index];
+                              final forecast = forecasts?[index];
+                              final airQualityForecast =
+                                  airQualityForecastDescription(forecast?.aqi);
                               return Padding(
                                 padding:
                                     const EdgeInsets.symmetric(horizontal: 5),
                                 child: Container(
-                                  width: 77,
+                                  width: 79,
                                   height: 260,
                                   decoration: ShapeDecoration(
                                     color: Colors.white.withOpacity(0.5),
@@ -344,7 +426,8 @@ class _AirQualityIndexState extends State<AirQualityIndex> {
                                     children: <Widget>[
                                       const SizedBox(height: 5),
                                       Text(
-                                        DateFormat('EEE').format(forecast.date),
+                                        DateFormat('EEE')
+                                            .format(forecast!.date),
                                         style: const TextStyle(
                                             fontSize: 17, color: Colors.black),
                                       ),
@@ -356,9 +439,11 @@ class _AirQualityIndexState extends State<AirQualityIndex> {
                                       ),
                                       const SizedBox(height: 5),
                                       Text(
-                                        'AQI: ${forecast.aqi}',
+                                        "${airQualityForecastDescription(forecast.aqi)}",
                                         style: const TextStyle(
-                                            fontSize: 16, color: Colors.blue, fontWeight: FontWeight.bold),
+                                            fontSize: 16,
+                                            color: Colors.blue,
+                                            fontWeight: FontWeight.bold),
                                       ),
                                     ],
                                   ),

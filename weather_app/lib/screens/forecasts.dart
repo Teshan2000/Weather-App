@@ -17,6 +17,8 @@ class _ForecastsState extends State<Forecasts> {
       WeatherService('c3281946b6139602ecabb86fd3e733c2');
   List<Forecast>? _forecasts;
   final now = DateTime.now();
+  
+  int currentPage = 0;
 
   fetchWeather() async {
     String cityName = await _weatherService.getCurrentCity();
@@ -71,6 +73,12 @@ class _ForecastsState extends State<Forecasts> {
   void initState() {
     super.initState();
     fetchWeather();
+
+    _controller.addListener(() {
+    setState(() {
+      currentPage = _controller.page!.round();
+    });
+  });
   }
 
   @override
@@ -105,8 +113,9 @@ class _ForecastsState extends State<Forecasts> {
                       ? SizedBox(
                           height: 270,
                           child: PageView.builder(
-                            // shrinkWrap: true,
-                            itemCount: _forecasts!.length,
+                            controller: _controller, 
+                            scrollDirection: Axis.horizontal,
+                            itemCount: 5,
                             itemBuilder: (context, index) {
                               final forecast = _forecasts![index];
                               return Padding(
@@ -129,12 +138,10 @@ class _ForecastsState extends State<Forecasts> {
                                     shadows: [
                                       BoxShadow(
                                         color: Colors.blue.withOpacity(0.5),
-                                        // spreadRadius: 3,
                                         blurRadius: 7,
                                         offset: Offset(0, 6),
                                       ),
                                     ],
-                                    // color: Colors.white.withOpacity(0.50),
                                   ),
                                   child: Padding(
                                     padding: const EdgeInsets.symmetric(
@@ -144,11 +151,30 @@ class _ForecastsState extends State<Forecasts> {
                                         Expanded(
                                           child: Row(
                                             children: [
-                                              const Spacer(),
+                                              forecast.dateTime.day == now.day && 
+                                              forecast.dateTime.month == now.month && 
+                                              forecast.dateTime.year == now.year
+                                                  ? const Spacer()
+                                                  : Column(
+                                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                                    children: [
+                                                      const Spacer(),
+                                                      const Spacer(),
+                                                      IconButton(
+                                                          onPressed: () {
+                                                            _controller.previousPage(
+                                                              duration: Duration(milliseconds: 500),
+                                                              curve: Curves.easeInOut);
+                                                          },
+                                                          icon: Icon(Icons.arrow_back_ios,
+                                                              color: Colors.blue)),
+                                                      const Spacer(),
+                                                      const Spacer(),
+                                                    ],
+                                                  ),
                                               Column(
-                                                crossAxisAlignment:
-                                                    CrossAxisAlignment.start,
-                                                children: [
+                                                crossAxisAlignment: CrossAxisAlignment.start,
+                                                children: [                                                  
                                                   const Spacer(),
                                                   Text(
                                                     forecast.dateTime.day == now.day && 
@@ -187,14 +213,31 @@ class _ForecastsState extends State<Forecasts> {
                                               Column(
                                                 children: [
                                                   Image.asset(
-                                                      getWeatherAnimation(
-                                                          forecast
-                                                              .mainCondition),
-                                                      width: 170),
+                                                    getWeatherAnimation(forecast.mainCondition),
+                                                    width: 170),
                                                   const Spacer(),
                                                 ],
                                               ),
                                               const Spacer(),
+                                              forecast.dateTime == (_forecasts!.last.dateTime).subtract(Duration(days: 1))
+                                              ? const Spacer() 
+                                              : Column(
+                                                crossAxisAlignment: CrossAxisAlignment.start,
+                                                children: [
+                                                  const Spacer(),
+                                                  const Spacer(),
+                                                  IconButton(
+                                                      onPressed: () {
+                                                        _controller.nextPage(
+                                                          duration: Duration(milliseconds: 500),
+                                                          curve: Curves.easeInOut);
+                                                      },
+                                                      icon: Icon(Icons.arrow_forward_ios,
+                                                          color: Colors.blue)),
+                                                  const Spacer(),
+                                                  const Spacer(),
+                                                ],
+                                              )
                                             ],
                                           ),
                                         ),
@@ -218,8 +261,7 @@ class _ForecastsState extends State<Forecasts> {
                                                 children: [
                                                   const Spacer(),
                                                   Image.asset(
-                                                    rainPrecipitation(
-                                                        forecast.pop),
+                                                    rainPrecipitation(forecast.pop),
                                                     fit: BoxFit.fitWidth,
                                                     height: 35,
                                                   ),

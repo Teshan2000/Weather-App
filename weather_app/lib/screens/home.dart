@@ -1,5 +1,6 @@
 import 'dart:ui';
 import 'package:flutter/material.dart';
+import 'package:geocoding/geocoding.dart';
 import 'package:intl/intl.dart';
 import 'package:lottie/lottie.dart';
 import 'package:weather_app/models/airQualityModel.dart';
@@ -10,6 +11,7 @@ import 'package:weather_app/screens/airQualityIndex.dart';
 import 'package:weather_app/screens/forecasts.dart';
 import 'package:weather_app/screens/locations.dart';
 import 'package:weather_app/screens/splash.dart';
+import 'package:weather_app/screens/weatherMap.dart';
 
 class Home extends StatefulWidget {
   const Home({super.key});
@@ -23,16 +25,33 @@ class _HomeState extends State<Home> {
   Weather? _weather;
   List<Forecast>? _forecasts;
   AirQuality? aqiData;
-  late final int windDirection;
 
   fetchWeather() async {
     String cityName = await _WeatherService.getCurrentCity();
     try {
       final weather = await _WeatherService.getWeather(cityName);
       final forecasts = await _WeatherService.getFiveDayForecast(cityName);
+      // final aqiData = await _WeatherService.get(cityName);
+      try {
+        List<Location> locations = await locationFromAddress(cityName);
+        double lat = locations[0].latitude;
+        double lon = locations[0].longitude;
+
+        final results = await Future.wait([
+          _WeatherService.fetchAirQuality(lat, lon),
+          _WeatherService.fetchAirQualityForecast(lat, lon),
+        ]);
+        setState(() {
+          aqiData = results[0] as AirQuality;
+        });
+      } catch (e, stackTrace) {
+        print("Error fetching air quality data: $e");
+        print("Stacktrace: $stackTrace");
+      }
       setState(() {
         _weather = weather;
         _forecasts = forecasts;
+        // aqiData = AirQuality;
       });
     } catch (e) {
       print(e);
@@ -66,22 +85,22 @@ class _HomeState extends State<Home> {
     }
   }
 
-  String getWindDirection(int degrees) {
-    if (degrees >= 337.5 || degrees < 22.5) {
+  String getWindDirection(int windDirection) {
+    if (windDirection >= 337.5 || windDirection < 22.5) {
       return 'North';
-    } else if (degrees >= 22.5 && degrees < 67.5) {
+    } else if (windDirection >= 22.5 && windDirection < 67.5) {
       return 'North-East';
-    } else if (degrees >= 67.5 && degrees < 112.5) {
+    } else if (windDirection >= 67.5 && windDirection < 112.5) {
       return 'East';
-    } else if (degrees >= 112.5 && degrees < 157.5) {
+    } else if (windDirection >= 112.5 && windDirection < 157.5) {
       return 'South-East';
-    } else if (degrees >= 157.5 && degrees < 202.5) {
+    } else if (windDirection >= 157.5 && windDirection < 202.5) {
       return 'South';
-    } else if (degrees >= 202.5 && degrees < 247.5) {
+    } else if (windDirection >= 202.5 && windDirection < 247.5) {
       return 'South-West';
-    } else if (degrees >= 247.5 && degrees < 292.5) {
+    } else if (windDirection >= 247.5 && windDirection < 292.5) {
       return 'West';
-    } else if (degrees >= 292.5 && degrees < 337.5) {
+    } else if (windDirection >= 292.5 && windDirection < 337.5) {
       return 'North-West';
     } else {
       return 'Unknown';
@@ -101,33 +120,9 @@ class _HomeState extends State<Home> {
     var formatterTime = DateFormat('kk:mm');
     String actualDate = formatterDate.format(now);
     String actualTime = formatterTime.format(now);
-
+    final forecast = _forecasts![1];
+    
     return Scaffold(
-      // extendBodyBehindAppBar: true,
-      // appBar: AppBar(
-      //   elevation: 0,
-      //   backgroundColor: Colors.transparent,
-      //   leading: IconButton(
-      //       onPressed: () {}, icon: const Icon(Icons.more_vert_outlined)),
-      //   title: Center(
-      //     child: Row(
-      //       mainAxisAlignment: MainAxisAlignment.center,
-      //       children: [
-      //         const Icon(Icons.location_on),
-      //         const SizedBox(width: 7),
-      //         Text(_weather?.cityName ?? "loading city..."),
-      //       ],
-      //     ),
-      //   ),
-      //   actions: [
-      //     IconButton(
-      //         onPressed: () {
-      //           Navigator.push(context,
-      //               MaterialPageRoute(builder: (context) => Locations()));
-      //         },
-      //         icon: const Icon(Icons.add_location_alt_outlined))
-      //   ],
-      // ),
       body: Container(
         width: MediaQuery.of(context).size.width,
         height: MediaQuery.of(context).size.height,
@@ -166,9 +161,19 @@ class _HomeState extends State<Home> {
                             child: Row(
                               mainAxisAlignment: MainAxisAlignment.spaceBetween,
                               children: [
-                                IconButton(
-                                    onPressed: () {},
-                                    icon: const Icon(Icons.more_vert_outlined)),
+                                Padding(
+                                  padding: const EdgeInsets.only(left: 5.0),
+                                  child: IconButton(
+                                      onPressed: () {
+                                        Navigator.push(
+                                            context,
+                                            MaterialPageRoute(
+                                                builder: (context) =>
+                                                    Locations()));
+                                      },
+                                      icon: const Icon(
+                                          Icons.add_location_alt_outlined)),
+                                ),
                                 Row(
                                   children: [
                                     const Icon(Icons.location_on),
@@ -181,16 +186,18 @@ class _HomeState extends State<Home> {
                                     ),
                                   ],
                                 ),
-                                IconButton(
-                                    onPressed: () {
-                                      Navigator.push(
-                                          context,
-                                          MaterialPageRoute(
-                                              builder: (context) =>
-                                                  Locations()));
-                                    },
-                                    icon: const Icon(
-                                        Icons.add_location_alt_outlined))
+                                Padding(
+                                  padding: const EdgeInsets.only(right: 5.0),
+                                  child: IconButton(
+                                      onPressed: () {
+                                        Navigator.push(
+                                            context,
+                                            MaterialPageRoute(
+                                                builder: (context) =>
+                                                    WeatherMap()));
+                                      },
+                                      icon: const Icon(Icons.map_outlined)),
+                                )
                               ],
                             ),
                           ),
@@ -313,7 +320,7 @@ class _HomeState extends State<Home> {
                                             width: 35,
                                           ),
                                           Text(
-                                            "${_weather?.pressure} bar",
+                                            "${_weather?.pressure} mb",
                                             style: TextStyle(
                                                 fontSize: 15,
                                                 color: Colors.blue,
@@ -340,18 +347,20 @@ class _HomeState extends State<Home> {
                                       child: Column(
                                         mainAxisAlignment:
                                             MainAxisAlignment.spaceAround,
+                                            
                                         children: [
+                                          _forecasts != null ?
                                           const Text(
-                                            "Wind Speed",
+                                            "Precipitation",
                                             style: TextStyle(fontSize: 15),
-                                          ),
+                                          ) : const Spacer(),
                                           Image.asset(
-                                            'assets/wind.png',
+                                            'assets/shower.png',
                                             fit: BoxFit.contain,
                                             width: 35,
                                           ),
                                           Text(
-                                            "${_weather?.windSpeed} m/s",
+                                            "${forecast.pop?.round()} mm",
                                             style: TextStyle(
                                                 fontSize: 15,
                                                 color: Colors.blue,
@@ -365,7 +374,7 @@ class _HomeState extends State<Home> {
                               ),
                             ),
                           ),
-                          const SizedBox(height: 20),
+                          const SizedBox(height: 15),
                           Padding(
                             padding: const EdgeInsets.symmetric(horizontal: 15),
                             child: Row(
@@ -384,8 +393,7 @@ class _HomeState extends State<Home> {
                                       Navigator.push(
                                         context,
                                         MaterialPageRoute(
-                                          builder: (context) =>
-                                              const Forecasts(),
+                                          builder: (context) => const Forecasts(),
                                         ),
                                       );
                                     },
@@ -399,7 +407,6 @@ class _HomeState extends State<Home> {
                                   ),
                                 ]),
                           ),
-                          const SizedBox(height: 5),
                           _forecasts != null
                               ? Container(
                                   padding: const EdgeInsets.symmetric(
@@ -479,12 +486,29 @@ class _HomeState extends State<Home> {
                       height: 1000, child: Center(child: LoadingScreen())),
               const SizedBox(height: 20),
               Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 15),
+                child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: <Widget>[
+                      Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 10),
+                        child: const Text(
+                          "Today Forecast",
+                          textAlign: TextAlign.start,
+                          style: TextStyle(
+                              fontSize: 16, fontWeight: FontWeight.bold),
+                        ),
+                      ),
+                    ]),
+              ),
+              const SizedBox(height: 20),
+              Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 10),
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                   children: <Widget>[
                     Container(
-                      width: 165,
+                      width: 175,
                       height: 105,
                       padding: const EdgeInsets.symmetric(vertical: 10),
                       decoration: ShapeDecoration(
@@ -501,7 +525,7 @@ class _HomeState extends State<Home> {
                             mainAxisAlignment: MainAxisAlignment.spaceAround,
                             children: [
                               const Text(
-                                "Min",
+                                "Min Temp",
                                 style: TextStyle(fontSize: 15),
                               ),
                               Image.asset(
@@ -512,8 +536,9 @@ class _HomeState extends State<Home> {
                               Text(
                                 "${_weather?.minTemp.round()}°C",
                                 style: TextStyle(
-                                  fontSize: 15,
-                                ),
+                                    fontSize: 15,
+                                    color: Colors.blue,
+                                    fontWeight: FontWeight.bold),
                               ),
                             ],
                           ),
@@ -521,7 +546,7 @@ class _HomeState extends State<Home> {
                             mainAxisAlignment: MainAxisAlignment.spaceAround,
                             children: [
                               const Text(
-                                "Max",
+                                "Max Temp",
                                 style: TextStyle(fontSize: 15),
                               ),
                               Image.asset(
@@ -532,8 +557,9 @@ class _HomeState extends State<Home> {
                               Text(
                                 "${_weather?.maxTemp.round()}°C",
                                 style: TextStyle(
-                                  fontSize: 15,
-                                ),
+                                    fontSize: 15,
+                                    color: Colors.blue,
+                                    fontWeight: FontWeight.bold),
                               ),
                             ],
                           ),
@@ -542,7 +568,7 @@ class _HomeState extends State<Home> {
                     ),
                     const SizedBox(width: 5),
                     Container(
-                      width: 165,
+                      width: 175,
                       height: 105,
                       padding: const EdgeInsets.symmetric(vertical: 10),
                       decoration: ShapeDecoration(
@@ -572,8 +598,9 @@ class _HomeState extends State<Home> {
                                     Text(
                                       "${DateFormat('HH:mm').format(DateTime.fromMillisecondsSinceEpoch(_weather!.sunrise * 1000).toLocal())}",
                                       style: TextStyle(
-                                        fontSize: 15,
-                                      ),
+                                          fontSize: 15,
+                                          color: Colors.blue,
+                                          fontWeight: FontWeight.bold),
                                     ),
                                   ],
                                 )
@@ -588,15 +615,16 @@ class _HomeState extends State<Home> {
                                       style: TextStyle(fontSize: 15),
                                     ),
                                     Image.asset(
-                                      'assets/clear.png',
+                                      'assets/night clear.png',
                                       fit: BoxFit.contain,
                                       width: 35,
                                     ),
                                     Text(
                                       "${DateFormat('HH:mm').format(DateTime.fromMillisecondsSinceEpoch(_weather!.sunset * 1000).toLocal())}",
                                       style: TextStyle(
-                                        fontSize: 15,
-                                      ),
+                                          fontSize: 15,
+                                          color: Colors.blue,
+                                          fontWeight: FontWeight.bold),
                                     ),
                                   ],
                                 )
@@ -607,6 +635,65 @@ class _HomeState extends State<Home> {
                   ],
                 ),
               ),
+              const SizedBox(height: 15),
+              _weather?.windDirection != null
+                  ? Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 10),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                        children: <Widget>[
+                          Container(
+                            width: 360,
+                            height: 65,
+                            padding: const EdgeInsets.symmetric(vertical: 10),
+                            decoration: ShapeDecoration(
+                              color: Colors.white.withOpacity(0.5),
+                              shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(15),
+                                  side: const BorderSide(
+                                      width: 2.5, color: Colors.white)),
+                            ),
+                            child: Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceAround,
+                              children: [
+                                const Text(
+                                  "Wind",
+                                  style: TextStyle(fontSize: 15),
+                                ),
+                                Image.asset(
+                                  'assets/wind.png',
+                                  fit: BoxFit.contain,
+                                  width: 45,
+                                ),
+                                Text(
+                                  getWindDirection(_weather!.windDirection),
+                                  style: TextStyle(
+                                      fontSize: 15,
+                                      color: Colors.blue,
+                                      fontWeight: FontWeight.bold),
+                                ),
+                                Transform.rotate(
+                                  angle: _weather!.windDirection.toDouble(),
+                                  child: Icon(
+                                    Icons.arrow_right_alt,
+                                    size: 30,
+                                    color: Colors.blue,
+                                  ),
+                                ),
+                                Text(
+                                  "${(_weather!.windSpeed * 3.6).round()} km/h",
+                                  style: TextStyle(
+                                      fontSize: 15,
+                                      color: Colors.blue,
+                                      fontWeight: FontWeight.bold),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ],
+                      ),
+                    )
+                  : CircularProgressIndicator(),
               const SizedBox(height: 15),
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 10),
@@ -614,147 +701,7 @@ class _HomeState extends State<Home> {
                   mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                   children: <Widget>[
                     Container(
-                      width: 355,
-                      height: 95,
-                      padding: const EdgeInsets.symmetric(vertical: 10),
-                      decoration: ShapeDecoration(
-                        color: Colors.white.withOpacity(0.5),
-                        shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(15),
-                            side: const BorderSide(
-                                width: 2.5, color: Colors.white)),
-                      ),
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceAround,
-                        children: [
-                          const SizedBox(width: 0),
-                          _weather != null
-                              ? Column(
-                                  mainAxisAlignment:
-                                      MainAxisAlignment.spaceAround,
-                                  children: [
-                                    const Text(
-                                      "Sunrise",
-                                      style: TextStyle(fontSize: 15),
-                                    ),
-                                    // Image.asset(
-                                    //   'assets/clear.png',
-                                    //   fit: BoxFit.contain,
-                                    //   width: 35,
-                                    // ),
-                                    Text(
-                                      "${DateFormat('HH:mm').format(DateTime.fromMillisecondsSinceEpoch(_weather!.sunrise * 1000).toLocal())}",
-                                      style: TextStyle(
-                                        fontSize: 15,
-                                      ),
-                                    ),
-                                  ],
-                                )
-                              : Center(child: CircularProgressIndicator()),
-                          Column(
-                            children: [
-                              Lottie.asset('assets/sun animation.json',
-                                  fit: BoxFit.fitHeight,
-                                  width: 215,
-                                  height: 70),
-                            ],
-                          ),
-                          _weather != null
-                              ? Column(
-                                  mainAxisAlignment:
-                                      MainAxisAlignment.spaceAround,
-                                  children: [
-                                    const Text(
-                                      "Sunset",
-                                      style: TextStyle(fontSize: 15),
-                                    ),
-                                    // Image.asset(
-                                    //   'assets/clear.png',
-                                    //   fit: BoxFit.contain,
-                                    //   width: 35,
-                                    // ),
-                                    Text(
-                                      "${DateFormat('HH:mm').format(DateTime.fromMillisecondsSinceEpoch(_weather!.sunset * 1000).toLocal())}",
-                                      style: TextStyle(
-                                        fontSize: 15,
-                                      ),
-                                    ),
-                                  ],
-                                )
-                              : Center(child: CircularProgressIndicator()),
-                          const SizedBox(width: 0),
-                        ],
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-              const SizedBox(height: 15),
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 12),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                  children: <Widget>[
-                    Container(
-                      // width: MediaQuery.of(context).size.width * 0.90,
-                      width: 360,
-                      height: 65,
-                      padding: const EdgeInsets.symmetric(vertical: 10),
-                      decoration: ShapeDecoration(
-                        color: Colors.white.withOpacity(0.5),
-                        shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(15),
-                            side: const BorderSide(
-                                width: 2.5, color: Colors.white)),
-                      ),
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceAround,
-                        children: [
-                          const Text(
-                            "Gust",
-                            style: TextStyle(fontSize: 15),
-                          ),
-                          Image.asset(
-                            'assets/wind.png',
-                            fit: BoxFit.contain,
-                            width: 45,
-                          ),
-                          Text(
-                            "${_weather?.windDirection}" ??
-                                "null",
-                            style: TextStyle(
-                              fontSize: 15,
-                            ),
-                          ),
-                          Transform.rotate(
-                            angle: windDirection * (3.1416 / 180),
-                            child: Icon(
-                              Icons.arrow_right_alt,
-                              size: 30,
-                              color: Colors.blue,
-                            ),
-                          ),
-                          Text(
-                            "13 km/h",
-                            style: TextStyle(
-                                fontSize: 15,
-                                color: Colors.blue,
-                                fontWeight: FontWeight.bold),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-              const SizedBox(height: 15),
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 10),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                  children: <Widget>[
-                    Container(
-                      width: 165,
+                      width: 175,
                       height: 65,
                       padding: const EdgeInsets.symmetric(vertical: 10),
                       decoration: ShapeDecoration(
@@ -779,15 +726,16 @@ class _HomeState extends State<Home> {
                           Text(
                             "${_weather?.feelsLike.round()}°C",
                             style: TextStyle(
-                              fontSize: 15,
-                            ),
+                                fontSize: 15,
+                                color: Colors.blue,
+                                fontWeight: FontWeight.bold),
                           ),
                         ],
                       ),
                     ),
                     const SizedBox(width: 5),
                     Container(
-                      width: 165,
+                      width: 175,
                       height: 65,
                       padding: const EdgeInsets.symmetric(vertical: 10),
                       decoration: ShapeDecoration(
@@ -801,19 +749,20 @@ class _HomeState extends State<Home> {
                         mainAxisAlignment: MainAxisAlignment.spaceAround,
                         children: [
                           const Text(
-                            "UV Index",
+                            "Dew Point",
                             style: TextStyle(fontSize: 15),
                           ),
                           Image.asset(
-                            'assets/sun.png',
+                            'assets/dew.png',
                             fit: BoxFit.contain,
                             width: 28,
                           ),
-                          const Text(
-                            "4",
+                          Text(
+                            "${_weather?.feelsLike.round()}°C",
                             style: TextStyle(
-                              fontSize: 15,
-                            ),
+                                fontSize: 15,
+                                color: Colors.blue,
+                                fontWeight: FontWeight.bold),
                           ),
                         ],
                       ),
@@ -822,13 +771,72 @@ class _HomeState extends State<Home> {
                 ),
               ),
               const SizedBox(height: 15),
+              _weather?.windDirection != null
+                  ? Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 10),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                        children: <Widget>[
+                          Container(
+                            width: 360,
+                            height: 65,
+                            padding: const EdgeInsets.symmetric(vertical: 10),
+                            decoration: ShapeDecoration(
+                              color: Colors.white.withOpacity(0.5),
+                              shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(15),
+                                  side: const BorderSide(
+                                      width: 2.5, color: Colors.white)),
+                            ),
+                            child: Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceAround,
+                              children: [
+                                const Text(
+                                  "Gust",
+                                  style: TextStyle(fontSize: 15),
+                                ),
+                                Image.asset(
+                                  'assets/wind.png',
+                                  fit: BoxFit.contain,
+                                  width: 45,
+                                ),
+                                Text(
+                                  getWindDirection(_weather!.windDirection),
+                                  style: TextStyle(
+                                      fontSize: 15,
+                                      color: Colors.blue,
+                                      fontWeight: FontWeight.bold),
+                                ),
+                                Transform.rotate(
+                                  angle: _weather!.windDirection.toDouble(),
+                                  child: Icon(
+                                    Icons.arrow_right_alt,
+                                    size: 30,
+                                    color: Colors.blue,
+                                  ),
+                                ),
+                                Text(
+                                  "${_weather?.gustSpeed.roundToDouble()} km/h",
+                                  style: TextStyle(
+                                      fontSize: 15,
+                                      color: Colors.blue,
+                                      fontWeight: FontWeight.bold),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ],
+                      ),
+                    )
+                  : CircularProgressIndicator(),
+              const SizedBox(height: 15),
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 10),
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                   children: <Widget>[
                     Container(
-                      width: 165,
+                      width: 175,
                       height: 65,
                       padding: const EdgeInsets.symmetric(vertical: 10),
                       decoration: ShapeDecoration(
@@ -853,15 +861,16 @@ class _HomeState extends State<Home> {
                           Text(
                             "${_weather?.cloudiness}%",
                             style: TextStyle(
-                              fontSize: 15,
-                            ),
+                                fontSize: 15,
+                                color: Colors.blue,
+                                fontWeight: FontWeight.bold),
                           ),
                         ],
                       ),
                     ),
                     const SizedBox(width: 5),
                     Container(
-                      width: 165,
+                      width: 175,
                       height: 65,
                       padding: const EdgeInsets.symmetric(vertical: 10),
                       decoration: ShapeDecoration(
@@ -879,7 +888,7 @@ class _HomeState extends State<Home> {
                             style: TextStyle(fontSize: 15),
                           ),
                           Image.asset(
-                            'assets/clouds.png',
+                            'assets/mist.png',
                             fit: BoxFit.contain,
                             width: 35,
                           ),
@@ -887,8 +896,9 @@ class _HomeState extends State<Home> {
                               ? Text(
                                   "${(_weather!.visibility / 1000).round()} km",
                                   style: TextStyle(
-                                    fontSize: 15,
-                                  ),
+                                      fontSize: 15,
+                                      color: Colors.blue,
+                                      fontWeight: FontWeight.bold),
                                 )
                               : Center(child: CircularProgressIndicator()),
                         ],
@@ -904,8 +914,7 @@ class _HomeState extends State<Home> {
                   mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                   children: <Widget>[
                     Container(
-                      // width: MediaQuery.of(context).size.width * 0.90,
-                      width: 350,
+                      width: 360,
                       height: 65,
                       padding: const EdgeInsets.symmetric(vertical: 10),
                       decoration: ShapeDecoration(
@@ -927,8 +936,8 @@ class _HomeState extends State<Home> {
                             fit: BoxFit.contain,
                             width: 35,
                           ),
-                          const Text(
-                            "1",
+                          Text(
+                            "${aqiData?.aqi}",
                             style: TextStyle(
                               fontSize: 15,
                             ),

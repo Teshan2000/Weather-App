@@ -38,7 +38,7 @@ class Weather {
       cityName: json['name'] ?? "Colombo",
       temperature: json['main']['temp'].toDouble(),
       humidity: json['main']['humidity']?.toInt() ?? 0,
-      pressure: json['main']['temp'].toInt(),
+      pressure: json['main']['pressure'].toInt(),
       windSpeed: json['wind']['speed'].toDouble(),
       gustSpeed: json['wind']['gust']?.toDouble(),
       windDirection: json['wind']['deg']?.toInt(),
