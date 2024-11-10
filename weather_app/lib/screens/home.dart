@@ -2,7 +2,6 @@ import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:geocoding/geocoding.dart';
 import 'package:intl/intl.dart';
-import 'package:lottie/lottie.dart';
 import 'package:weather_app/models/airQualityModel.dart';
 import 'package:weather_app/models/weatherModel.dart';
 import 'package:weather_app/models/forecastModel.dart';
@@ -31,27 +30,21 @@ class _HomeState extends State<Home> {
     try {
       final weather = await _WeatherService.getWeather(cityName);
       final forecasts = await _WeatherService.getFiveDayForecast(cityName);
-      // final aqiData = await _WeatherService.get(cityName);
-      try {
+      
         List<Location> locations = await locationFromAddress(cityName);
         double lat = locations[0].latitude;
         double lon = locations[0].longitude;
 
         final results = await Future.wait([
           _WeatherService.fetchAirQuality(lat, lon),
-          _WeatherService.fetchAirQualityForecast(lat, lon),
         ]);
         setState(() {
           aqiData = results[0] as AirQuality;
         });
-      } catch (e, stackTrace) {
-        print("Error fetching air quality data: $e");
-        print("Stacktrace: $stackTrace");
-      }
+      
       setState(() {
         _weather = weather;
         _forecasts = forecasts;
-        // aqiData = AirQuality;
       });
     } catch (e) {
       print(e);
@@ -120,7 +113,7 @@ class _HomeState extends State<Home> {
     var formatterTime = DateFormat('kk:mm');
     String actualDate = formatterDate.format(now);
     String actualTime = formatterTime.format(now);
-    final forecast = _forecasts![1];
+    final forecast = _forecasts?[1];
     
     return Scaffold(
       body: Container(
@@ -202,7 +195,6 @@ class _HomeState extends State<Home> {
                             ),
                           ),
                           const SizedBox(height: 14),
-                          // const SizedBox(height: 87),
                           Center(
                             child: Text(
                               "   $actualDate | $actualTime",
@@ -224,7 +216,6 @@ class _HomeState extends State<Home> {
                               getWeatherAnimation(
                                 _weather?.mainCondition,
                               ),
-                              // "assets/drizzle.png",
                               width: 200),
                           const SizedBox(height: 15),
                           Center(
@@ -360,7 +351,7 @@ class _HomeState extends State<Home> {
                                             width: 35,
                                           ),
                                           Text(
-                                            "${forecast.pop?.round()} mm",
+                                            "${forecast?.pop?.round()} mm",
                                             style: TextStyle(
                                                 fontSize: 15,
                                                 color: Colors.blue,
@@ -407,8 +398,7 @@ class _HomeState extends State<Home> {
                                   ),
                                 ]),
                           ),
-                          _forecasts != null
-                              ? Container(
+                          Container(
                                   padding: const EdgeInsets.symmetric(
                                       horizontal: 0, vertical: 10),
                                   height: 145,
@@ -475,10 +465,7 @@ class _HomeState extends State<Home> {
                                       );
                                     }),
                                   ),
-                                )
-                              : Column(
-                                  mainAxisAlignment: MainAxisAlignment.center,
-                                  children: [CircularProgressIndicator()]),
+                                ),                              
                         ],
                       ),
                     )
@@ -815,8 +802,8 @@ class _HomeState extends State<Home> {
                                     color: Colors.blue,
                                   ),
                                 ),
-                                Text(
-                                  "${_weather?.gustSpeed.roundToDouble()} km/h",
+                                Text(                                  
+                                  "${(_weather!.gustSpeed * 3.6).round()} km/h",
                                   style: TextStyle(
                                       fontSize: 15,
                                       color: Colors.blue,

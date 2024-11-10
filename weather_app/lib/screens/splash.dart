@@ -1,4 +1,6 @@
 import 'dart:async';
+import 'package:connectivity_plus/connectivity_plus.dart';
+import 'package:internet_connection_checker_plus/internet_connection_checker_plus.dart';
 import 'package:lottie/lottie.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';
@@ -12,73 +14,67 @@ class SplashScreen extends StatefulWidget {
 }
 
 class SplashScreenState extends State<SplashScreen> {
-  // late StreamSubscription<ConnectivityResult> _connectivitySubscription;
   bool isConnected = false;
+  StreamSubscription? _internetConnectionStreamSubscription;
 
   @override
   void initState() {
-    super.initState();
-    startSplashTimer();
-    // _checkConnection();
-    // _navigateToHome();
+    super.initState();    
+    _checkConnection();
   }
 
-  // void _checkConnection() async {
-  //   var connectivityResult = await (Connectivity().checkConnectivity());
-  //   _updateConnectionStatus(connectivityResult);
+  @override
+  void dispose() {
+    _internetConnectionStreamSubscription?.cancel();
+    super.dispose();
+  }
 
-  //   // Listen for connection changes
-  //   _connectivitySubscription = Connectivity().onConnectivityChanged.listen(_updateConnectionStatus);
-  // }
+  void _checkConnection() async {
+    _internetConnectionStreamSubscription =
+        InternetConnection().onStatusChange.listen((event) {
+      print(event);
+      switch (event) {
+        case InternetStatus.connected:
+          setState(() {
+            isConnected = true;
+            startSplashTimer();
+          });
+          break;
+        case InternetStatus.disconnected:
+          setState(() {
+            isConnected = false;
+            _showNoConnectionDialog();
+          });
+          break;
+        default:
+          setState(() {
+            isConnected = false;
+          });
+          break;
+      }
+    });
+  }
 
-  // void _updateConnectionStatus(ConnectivityResult result) {
-  //   setState(() {
-  //     if (result == ConnectivityResult.mobile || result == ConnectivityResult.wifi) {
-  //       isConnected = true;
-  //     } else {
-  //       isConnected = false;
-  //     }
-  //   });
-  // }
-
-  // void _navigateToHome() async {
-  //   // Simulate loading for 3 seconds
-  //   await Future.delayed(const Duration(seconds: 3));
-
-  //   // Check if connected before navigating
-  //   if (isConnected) {
-  //     Navigator.pushReplacementNamed(context, '/home');
-  //   } else {
-  //     _showNoConnectionDialog();
-  //   }
-  // }
-
-  // void _showNoConnectionDialog() {
-  //   showDialog(
-  //     context: context,
-  //     builder: (BuildContext context) {
-  //       return AlertDialog(
-  //         title: const Text("No Internet Connection"),
-  //         content: const Text("Please check your internet connection and try again."),
-  //         actions: [
-  //           TextButton(
-  //             onPressed: () {
-  //               Navigator.of(context).pop();
-  //               _checkConnection();
-  //             },
-  //             child: const Text("Retry"),
-  //           ),
-  //         ],
-  //       );
-  //     },
-  //   );
-  // }
-
-  // @override
-  // void dispose() {
-  //   _connectivitySubscription.cancel();
-  //   super.dispose();
-  // }
+  void _showNoConnectionDialog() {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: const Text("No Internet Connection"),
+          content: const Text(
+              "Please check your internet connection and try again."),
+          actions: [
+            TextButton(
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+              child: const Text("Retry"),
+            ),
+          ],
+        );
+      },
+    );
+  }
 
   void startSplashTimer() {
     const splashDuration = Duration(seconds: 3);
@@ -128,9 +124,7 @@ class SplashScreenState extends State<SplashScreen> {
                     "Daily Weather Forecasts",
                     textAlign: TextAlign.center,
                     style: const TextStyle(
-                      fontSize: 35,
-                      fontWeight: FontWeight.bold
-                    ),
+                        fontSize: 35, fontWeight: FontWeight.bold),
                   ),
                 ),
               ),
@@ -169,15 +163,13 @@ class LoadingScreen extends StatelessWidget {
               ),
               const SizedBox(height: 40),
               Container(
-                width: 170,
+                width: 870,
                 child: Center(
                   child: Text(
-                    "Daily Weather Forecasts",
+                    "Loading Weather...",
                     textAlign: TextAlign.center,
                     style: const TextStyle(
-                      fontSize: 35,
-                      fontWeight: FontWeight.bold
-                    ),
+                        fontSize: 35, fontWeight: FontWeight.bold),
                   ),
                 ),
               ),
