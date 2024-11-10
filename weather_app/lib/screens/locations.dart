@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:shared_preferences/shared_preferences.dart';
+// import 'package:shared_preferences/shared_preferences.dart';
 import 'package:weather_app/providers/weatherService.dart';
 import 'package:weather_app/models/weatherModel.dart';
 import 'dart:convert';
@@ -55,26 +55,26 @@ class _LocationsState extends State<Locations> {
     // });
   }
 
-  void _loadSavedCities() async {
-    final prefs = await SharedPreferences.getInstance();
-    final savedCities = prefs.getStringList('savedCities') ?? [];
-    final List<Weather> savedWeatherData = savedCities.map((city) {
-      final Map<String, dynamic> weatherMap = json.decode(city);
-      return Weather.fromJson(weatherMap);
-    }).toList();
+  // void _loadSavedCities() async {
+  //   final prefs = await SharedPreferences.getInstance();
+  //   final savedCities = prefs.getStringList('savedCities') ?? [];
+  //   final List<Weather> savedWeatherData = savedCities.map((city) {
+  //     final Map<String, dynamic> weatherMap = json.decode(city);
+  //     return Weather.fromJson(weatherMap);
+  //   }).toList();
 
-    setState(() {
-      _addedCitiesWeather = savedWeatherData;
-    });
-  }
+  //   setState(() {
+  //     _addedCitiesWeather = savedWeatherData;
+  //   });
+  // }
 
-  void _saveCities() async {
-    final prefs = await SharedPreferences.getInstance();
-    final savedCities = _addedCitiesWeather
-        .map((weather) => json.encode(weather.toJson()))
-        .toList();
-    await prefs.setStringList('savedCities', savedCities);
-  }
+  // void _saveCities() async {
+  //   final prefs = await SharedPreferences.getInstance();
+  //   final savedCities = _addedCitiesWeather
+  //       .map((weather) => json.encode(weather.toJson()))
+  //       .toList();
+  //   await prefs.setStringList('savedCities', savedCities);
+  // }
 
   void _onCityChanged(String query) async {
     if (query.isEmpty) {
@@ -112,7 +112,7 @@ class _LocationsState extends State<Locations> {
         _cityController.clear();
         _suggestions = [];
       });
-      _saveCities();
+      // _saveCities();
     } catch (e) {
       print(e);
     }
@@ -122,7 +122,7 @@ class _LocationsState extends State<Locations> {
     setState(() {
       _addedCitiesWeather.removeAt(index);
     });
-    _saveCities();
+    // _saveCities();
   }
 
   @override

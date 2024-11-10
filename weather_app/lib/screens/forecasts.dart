@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
-import 'package:lottie/lottie.dart';
 import 'package:weather_app/models/forecastModel.dart';
 import 'package:weather_app/providers/weatherService.dart';
+import 'package:weather_app/screens/splash.dart';
 
 class Forecasts extends StatefulWidget {
   const Forecasts({super.key});
@@ -122,7 +122,6 @@ class _ForecastsState extends State<Forecasts> {
                                 padding: const EdgeInsets.symmetric(
                                     horizontal: 0, vertical: 10),
                                 child: Container(
-                                  // height: 260,
                                   width: double.infinity,
                                   decoration: ShapeDecoration(
                                     shape: const RoundedRectangleBorder(
@@ -289,7 +288,8 @@ class _ForecastsState extends State<Forecasts> {
                             },
                           ),
                         )
-                      : Center(child: CircularProgressIndicator()),
+                      : Container(
+                      height: 1000, child: Center(child: LoadingScreen())),
                   const SizedBox(height: 15),
                   _forecasts != null
                       ? ListView.builder(

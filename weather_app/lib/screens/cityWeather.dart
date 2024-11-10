@@ -1,15 +1,13 @@
 import 'dart:ui';
 import 'package:flutter/material.dart';
+import 'package:geocoding/geocoding.dart';
 import 'package:intl/intl.dart';
-import 'package:lottie/lottie.dart';
 import 'package:weather_app/models/airQualityModel.dart';
 import 'package:weather_app/models/weatherModel.dart';
 import 'package:weather_app/models/forecastModel.dart';
 import 'package:weather_app/providers/weatherService.dart';
 import 'package:weather_app/screens/airQualityIndex.dart';
 import 'package:weather_app/screens/forecasts.dart';
-import 'package:weather_app/screens/home.dart';
-import 'package:weather_app/screens/locations.dart';
 import 'package:weather_app/screens/splash.dart';
 import 'package:weather_app/screens/weatherMap.dart';
 
@@ -26,14 +24,24 @@ class _CityWeatherState extends State<CityWeather> {
   Weather? _weather;
   List<Forecast>? _forecasts;
   AirQuality? aqiData;
-  late final int windDirection;
 
   fetchWeather() async {
-    // String cityName = await _WeatherService.getCurrentCity();
+    String cityName = await _WeatherService.getCurrentCity();
     try {
-      final weather = await _WeatherService.getWeather(widget.cityName);
-      final forecasts = await _WeatherService.getFiveDayForecast(widget.cityName);
-      // final airQuality = await _WeatherService.fetchAirQuality(cityName);
+      final weather = await _WeatherService.getWeather(cityName);
+      final forecasts = await _WeatherService.getFiveDayForecast(cityName);
+      
+        List<Location> locations = await locationFromAddress(cityName);
+        double lat = locations[0].latitude;
+        double lon = locations[0].longitude;
+
+        final results = await Future.wait([
+          _WeatherService.fetchAirQuality(lat, lon),
+        ]);
+        setState(() {
+          aqiData = results[0] as AirQuality;
+        });
+      
       setState(() {
         _weather = weather;
         _forecasts = forecasts;
@@ -70,39 +78,6 @@ class _CityWeatherState extends State<CityWeather> {
     }
   }
 
-  // List<Map<String, dynamic>> forecasts = [
-  //   {
-  //     'day': 'Mon',
-  //     'image': 'assets/clouds.png',
-  //     'temp': '12°C',
-  //     'condition': 'Clouds',
-  //   },
-  //   {
-  //     'day': 'Tue',
-  //     'image': 'assets/clouds.png',
-  //     'temp': '11°C',
-  //     'condition': 'Clouds',
-  //   },
-  //   {
-  //     'day': 'Wed',
-  //     'image': 'assets/clouds.png',
-  //     'temp': '11°C',
-  //     'condition': 'Clouds',
-  //   },
-  //   {
-  //     'day': 'Thu',
-  //     'image': 'assets/clear.png',
-  //     'temp': '10°C',
-  //     'condition': 'Clear',
-  //   },
-  //   {
-  //     'day': 'Fri',
-  //     'image': 'assets/clouds.png',
-  //     'temp': '10°C',
-  //     'condition': 'Clouds',
-  //   },
-  // ];
-
   @override
   void initState() {
     super.initState();
@@ -129,7 +104,7 @@ class _CityWeatherState extends State<CityWeather> {
         child: SingleChildScrollView(
           child: Column(
             children: [
-              // _forecasts != null
+              _forecasts != null ?
               Container(
                 height: 810,
                 width: double.infinity,
@@ -381,8 +356,7 @@ class _CityWeatherState extends State<CityWeather> {
                           ]),
                     ),
                     const SizedBox(height: 0),
-                    _forecasts != null
-                    ? Container(
+                    Container(
                       padding: const EdgeInsets.symmetric(
                           horizontal: 0, vertical: 10),
                       height: 145,
@@ -436,15 +410,11 @@ class _CityWeatherState extends State<CityWeather> {
                           );
                         }),
                       ),
-                    )
-                    : Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [CircularProgressIndicator()]),
+                    ),
                   ],
                 ),
-              ),
-              // : Container(
-              //     height: 1000, child: Center(child: LoadingScreen())),
+              ) : Container(
+                height: 1000, child: Center(child: LoadingScreen())),
               const SizedBox(height: 20),
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 15),

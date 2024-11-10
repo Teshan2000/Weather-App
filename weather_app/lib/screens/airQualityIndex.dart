@@ -5,6 +5,7 @@ import 'package:syncfusion_flutter_charts/charts.dart';
 import 'package:weather_app/models/airQualityModel.dart';
 import 'package:weather_app/models/dailyAirQualityModel.dart';
 import 'package:weather_app/providers/weatherService.dart';
+import 'package:weather_app/screens/splash.dart';
 
 class AirQualityIndex extends StatefulWidget {
   const AirQualityIndex({super.key});
@@ -122,16 +123,6 @@ class _AirQualityIndexState extends State<AirQualityIndex> {
     }
   }
 
-  // String rainPrecipitation(int? aqi) {
-  //   if (aqi! <= 2) {
-  //     return "assets/rainbow.png";
-  //   } else if (aqi == null) {
-  //     return "assets/rainbow.png";
-  //   } else {
-  //     return "assets/mist.png";
-  //   }
-  // }
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -158,6 +149,7 @@ class _AirQualityIndexState extends State<AirQualityIndex> {
             child: SafeArea(
               child: Column(
                 children: [
+                  aqiData != null ?
                   ListView.builder(
                     shrinkWrap: true,
                     itemCount: 1,
@@ -375,7 +367,8 @@ class _AirQualityIndexState extends State<AirQualityIndex> {
                         ),
                       );
                     },
-                  ),
+                  ) : Container(
+                      height: 1000, child: Center(child: LoadingScreen())),
                   const SizedBox(height: 25),
                   Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 20),
@@ -404,8 +397,7 @@ class _AirQualityIndexState extends State<AirQualityIndex> {
                             itemCount: 5,
                             itemBuilder: (context, index) {
                               final forecast = forecasts?[index];
-                              final airQualityForecast =
-                                  airQualityForecastDescription(forecast?.aqi);
+                              final airQualityForecast = airQualityForecastDescription(forecast?.aqi);
                               return Padding(
                                 padding:
                                     const EdgeInsets.symmetric(horizontal: 5),
@@ -432,10 +424,12 @@ class _AirQualityIndexState extends State<AirQualityIndex> {
                                             fontSize: 17, color: Colors.black),
                                       ),
                                       const SizedBox(height: 5),
-                                      Image.asset(
-                                        'assets/wind.png',
-                                        fit: BoxFit.cover,
-                                        width: 37,
+                                      Text(
+                                        "${forecast.aqi}",
+                                        style: const TextStyle(
+                                            fontSize: 16,
+                                            color: Colors.blue,
+                                            fontWeight: FontWeight.bold),
                                       ),
                                       const SizedBox(height: 5),
                                       Text(
