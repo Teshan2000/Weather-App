@@ -9,6 +9,7 @@ class Weather {
   final double feelsLike;
   final double minTemp;
   final double maxTemp;
+  final double? precipitation;
   final int visibility;
   final int cloudiness;
   final int sunrise;
@@ -31,6 +32,7 @@ class Weather {
     required this.cloudiness,
     required this.sunrise,
     required this.sunset,
+    this.precipitation,
   });
 
   factory Weather.fromJson(Map<String, dynamic> json) {
@@ -46,6 +48,7 @@ class Weather {
       feelsLike: (json['main']['feels_like'] ?? 0.0).toDouble(),
       minTemp: (json['main']['temp_min'] ?? 0.0).toDouble(),
       maxTemp: (json['main']['temp_max'] ?? 0.0).toDouble(),
+      precipitation: json['rain'] != null ? (json['rain']['1h'] ?? 0.0).toDouble() : 0.0,
       visibility: json['visibility'],
       cloudiness: json['clouds']['all'],
       sunrise: json['sys']['sunrise']?.toInt(),

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:weather_app/screens/splash.dart';
+
 void main() {
   runApp(const MyApp());
 }
@@ -21,4 +22,15 @@ class MyApp extends StatelessWidget {
           '/': (context) => const SplashScreen(),
         });
   }
+}
+
+class ScreenSize {
+  static double width(BuildContext context) =>
+      MediaQuery.of(context).size.width;
+
+  static double height(BuildContext context) =>
+      MediaQuery.of(context).size.height;
+
+  static bool orientation(BuildContext context) =>
+      MediaQuery.of(context).orientation == Orientation.landscape;
 }
