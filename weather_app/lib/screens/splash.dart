@@ -1,9 +1,9 @@
 import 'dart:async';
-import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:internet_connection_checker_plus/internet_connection_checker_plus.dart';
 import 'package:lottie/lottie.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';
+import 'package:weather_app/main.dart';
 import 'package:weather_app/screens/home.dart';
 
 class SplashScreen extends StatefulWidget {
@@ -19,7 +19,7 @@ class SplashScreenState extends State<SplashScreen> {
 
   @override
   void initState() {
-    super.initState();    
+    super.initState();
     _checkConnection();
   }
 
@@ -94,6 +94,10 @@ class SplashScreenState extends State<SplashScreen> {
 
   @override
   Widget build(BuildContext context) {
+    double width = ScreenSize.width(context);
+    double height = ScreenSize.height(context);
+    bool isLandscape = ScreenSize.orientation(context);
+
     return Scaffold(
       body: Container(
         width: MediaQuery.of(context).size.width,
@@ -104,29 +108,34 @@ class SplashScreenState extends State<SplashScreen> {
           fit: BoxFit.cover,
         )),
         child: Padding(
-          padding: const EdgeInsets.all(38.0),
+          padding: isLandscape ? EdgeInsets.all(0) : EdgeInsets.all(38),
           child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              const SizedBox(height: 80),
               Center(
                 child: Lottie.asset(
                   'assets/splash.json',
                   fit: BoxFit.contain,
-                  width: MediaQuery.of(context).size.width,
-                  // height: MediaQuery.of(context).size.height,
+                  width: isLandscape ? width * 0.3 : width,
                 ),
               ),
-              const SizedBox(height: 40),
+              SizedBox(
+                height: isLandscape ? height * 0 : height * 0.01,
+              ),
               Container(
-                width: 170,
+                width: isLandscape ? 300 : 230,
                 child: Center(
                   child: Text(
                     "Daily Weather Forecasts",
                     textAlign: TextAlign.center,
-                    style: const TextStyle(
-                        fontSize: 35, fontWeight: FontWeight.bold),
+                    style: TextStyle(
+                      fontSize: isLandscape ? 35 : 40,
+                      fontWeight: FontWeight.bold),
                   ),
                 ),
+              ),
+              SizedBox(
+                height: isLandscape ? height * 0.05 : height * 0.05,
               ),
             ],
           ),
@@ -139,39 +148,48 @@ class SplashScreenState extends State<SplashScreen> {
 class LoadingScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
+    double width = ScreenSize.width(context);
+    double height = ScreenSize.height(context);
+    bool isLandscape = ScreenSize.orientation(context);
+
     return Scaffold(
       body: Container(
-        width: MediaQuery.of(context).size.width,
-        height: MediaQuery.of(context).size.height,
+        width: width,
+        height: height,
         decoration: BoxDecoration(
             image: DecorationImage(
           image: AssetImage('assets/background.png'),
           fit: BoxFit.cover,
         )),
         child: Padding(
-          padding: const EdgeInsets.all(38.0),
+          padding: isLandscape ? EdgeInsets.all(0) : EdgeInsets.all(38),
           child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              const SizedBox(height: 80),
               Center(
                 child: Lottie.asset(
                   'assets/splash.json',
                   fit: BoxFit.contain,
-                  width: MediaQuery.of(context).size.width,
-                  // height: MediaQuery.of(context).size.height,
+                  width: isLandscape ? width * 0.3 : width,
                 ),
               ),
-              const SizedBox(height: 40),
+              SizedBox(
+                height: isLandscape ? height * 0 : height * 0.01,
+              ),
               Container(
-                width: 870,
+                width: isLandscape ? 300 : 230,
                 child: Center(
                   child: Text(
                     "Loading Weather...",
                     textAlign: TextAlign.center,
-                    style: const TextStyle(
-                        fontSize: 35, fontWeight: FontWeight.bold),
+                    style: TextStyle(
+                      fontSize: isLandscape ? 35 : 40,
+                      fontWeight: FontWeight.bold),
                   ),
                 ),
+              ),
+              SizedBox(
+                height: isLandscape ? height * 0.05 : height * 0.05,
               ),
             ],
           ),

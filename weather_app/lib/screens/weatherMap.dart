@@ -1,6 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_map/flutter_map.dart';
+import 'package:geolocator/geolocator.dart';
 import 'package:latlong2/latlong.dart';
+import 'package:weather_app/main.dart';
+import 'package:weather_app/models/airQualityModel.dart';
+import 'package:weather_app/models/weatherModel.dart';
+import 'package:weather_app/providers/weatherService.dart';
+import 'package:weather_app/screens/splash.dart';
 
 class WeatherMap extends StatefulWidget {
   @override
@@ -8,9 +14,13 @@ class WeatherMap extends StatefulWidget {
 }
 
 class _WeatherMapState extends State<WeatherMap> {
-  // OpenWeather API key
-  final String apiKey = 'c3281946b6139602ecabb86fd3e733c2';
-  // List<Marker> weatherMarkers = [];
+  final String apiKey = '252bb571d411f6016045c128fcd11393';
+  final _WeatherService = WeatherService('252bb571d411f6016045c128fcd11393');
+  Weather? _weather;
+  AirQuality? aqiData;
+  final MapController _mapController = MapController();
+  LatLng? _mapCenter;
+
   bool _showClouds = false;
   bool _showTemp = false;
   bool _showAirQuality = false;
@@ -18,89 +28,91 @@ class _WeatherMapState extends State<WeatherMap> {
   bool _showPrecipitation = false;
   bool _showPressure = false;
 
-  // Future<void> updateWeatherMarkers() async {
-  //   // Clear existing markers
-  //   weatherMarkers.clear();
+  Future<Position> _getCurrentPosition() async {
+    bool serviceEnabled;
+    LocationPermission permission;
 
-  //   // Add markers based on each weather condition enabled
-  //   if (_showClouds) {
-  //     weatherMarkers.add(
-  //       Marker(
-  //         point: LatLng(6.9319, 79.8478),
-  //         child: Image.asset(
-  //           "assets/clouds.png",
-  //           fit: BoxFit.contain,
-  //           width: 35,
-  //         ),
-  //       ),
-  //     );
-  //   }
-  //   if (_showTemp) {
-  //     weatherMarkers.add(
-  //       Marker(
-  //         point: LatLng(6.9319, 79.8478),
-  //         child: Image.asset(
-  //           "assets/max.png",
-  //           fit: BoxFit.contain,
-  //           width: 35,
-  //         ),
-  //       ),
-  //     );
-  //   }
-  //   if (_showAirQuality) {
-  //     weatherMarkers.add(
-  //       Marker(
-  //         point: LatLng(6.9319, 79.8478),
-  //         child: Image.asset(
-  //           "assets/wind.png",
-  //           fit: BoxFit.contain,
-  //           width: 35,
-  //         ),
-  //       ),
-  //     );
-  //   }
-  //   if (_showWinds) {
-  //     weatherMarkers.add(
-  //       Marker(
-  //         point: LatLng(6.9319, 79.8478),
-  //         child: Image.asset(
-  //           "assets/wind.png",
-  //           fit: BoxFit.contain,
-  //           width: 35,
-  //         ),
-  //       ),
-  //     );
-  //   }
-  //   if (_showPrecipitation) {
-  //     weatherMarkers.add(
-  //       Marker(
-  //         point: LatLng(6.9319, 79.8478),
-  //         child: Image.asset(
-  //           "assets/water.png",
-  //           fit: BoxFit.contain,
-  //           width: 35,
-  //         ),
-  //       ),
-  //     );
-  //   }
-  //   if (_showPressure) {
-  //     weatherMarkers.add(
-  //       Marker(
-  //         point: LatLng(6.9319, 79.8478),
-  //         child: Image.asset(
-  //           "assets/pressure.png",
-  //           fit: BoxFit.contain,
-  //           width: 35,
-  //         ),
-  //       ),
-  //     );
-  //   }
-  //   // Refresh markers on the map
-  //   setState(() {});
-  // }
+    serviceEnabled = await Geolocator.isLocationServiceEnabled();
+    if (!serviceEnabled) {
+      throw Exception('Location services are disabled.');
+    }
+
+    permission = await Geolocator.checkPermission();
+    if (permission == LocationPermission.denied) {
+      permission = await Geolocator.requestPermission();
+      if (permission == LocationPermission.denied) {
+        throw Exception('Location permissions are denied');
+      }
+    }
+
+    if (permission == LocationPermission.deniedForever) {
+      throw Exception('Location permissions are permanently denied');
+    }
+
+    return await Geolocator.getCurrentPosition(
+      desiredAccuracy: LocationAccuracy.high,
+    );
+  }
+
+  fetchWeather() async {
+    String cityName = await _WeatherService.getCurrentCity();
+    try {
+      final weather = await _WeatherService.getWeather(cityName);
+      final position = await _getCurrentPosition();
+      double lat = position.latitude;
+      double lon = position.longitude;
+
+      final results = await Future.wait([
+        _WeatherService.fetchAirQuality(lat, lon),
+      ]);
+
+      setState(() {
+        aqiData = results[0];
+        _weather = weather;
+        _mapCenter = LatLng(lat, lon);
+      });
+
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        try {
+          _mapController.move(_mapCenter!, 16.0);
+        } catch (_) {}
+      });
+    } catch (e) {
+      print(e);
+    }
+  }
+
+  String airQualityForecastDescription(int? aqi) {
+    if (aqi == null) return "No internet connection";
+
+    switch (aqi) {
+      case 1:
+        return "Good";
+      case 2:
+        return "Fair";
+      case 3:
+        return "Moderate";
+      case 4:
+        return "Poor";
+      case 5:
+        return "Unhealthy";
+      default:
+        return "Unavailable";
+    }
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    fetchWeather();
+  }
 
   @override
   Widget build(BuildContext context) {
+    double width = ScreenSize.width(context);
+    double height = ScreenSize.height(context);
+    bool isLandscape = ScreenSize.orientation(context);
+
     return Scaffold(
       extendBodyBehindAppBar: true,
       appBar: AppBar(
@@ -114,20 +126,22 @@ class _WeatherMapState extends State<WeatherMap> {
         ],
       ),
       body: Container(
-        width: MediaQuery.of(context).size.width,
-        height: MediaQuery.of(context).size.height,
+        width: width,
+        height: height,
         decoration: const BoxDecoration(
-            image: DecorationImage(
-          image: AssetImage('assets/background.png'),
-          fit: BoxFit.cover,
+          image: DecorationImage(
+            image: AssetImage('assets/background.png'),
+            fit: BoxFit.cover,
         )),
         child: Stack(
           children: [
+            _mapCenter == null ? Container(
+              height: 1000, child: Center(child: LoadingScreen())) :
             FlutterMap(
+              mapController: _mapController,
               options: MapOptions(
-                initialCenter: LatLng(6.913889, 79.860556),
+                initialCenter: _mapCenter!,
                 initialZoom: 16.0,
-                // maxZoom: 5
               ),
               children: [
                 TileLayer(
@@ -139,312 +153,321 @@ class _WeatherMapState extends State<WeatherMap> {
                   TileLayer(
                     urlTemplate:
                         'https://tile.openweathermap.org/map/clouds_new/{z}/{x}/{y}.png?appid=$apiKey',
-                    // opacity: 0.5, // Set transparency
                   ),
                 if (_showWinds)
                   TileLayer(
                     urlTemplate:
                         'https://tile.openweathermap.org/map/wind_new/{z}/{x}/{y}.png?appid=$apiKey',
-                    // opacity: 0.3, // Adjust opacity
                   ),
                 if (_showTemp)
                   TileLayer(
                     urlTemplate:
                         'https://tile.openweathermap.org/map/temp_new/{z}/{x}/{y}.png?appid=$apiKey',
-                    // opacity: 0.3, // Adjust opacity
                   ),
                 if (_showPrecipitation)
                   TileLayer(
                     urlTemplate:
                         'https://tile.openweathermap.org/map/precipitation_new/{z}/{x}/{y}.png?appid=$apiKey',
-                    // opacity: 0.3, // Adjust opacity
                   ),
                 if (_showPressure)
                   TileLayer(
                     urlTemplate:
                         'https://tile.openweathermap.org/map/pressure_new/{z}/{x}/{y}.png?appid=$apiKey',
-                    // opacity: 0.3, // Adjust opacity
                   ),
-                MarkerLayer(
-                  markers: [
-                    Marker(
-                      point: LatLng(6.913889, 79.860556),
+                MarkerLayer(markers: [
+                  Marker(
+                      point: _mapCenter!,
                       child: Icon(
                         Icons.location_on,
                         color: Colors.red,
-                      )
-                    ),
-                  ]
-                ),
+                      )),
+                ]),
               ],
-            ),            
-            // if (_showClouds)
-            // Container(
-            //   color: Colors.transparent,
-            //   width: MediaQuery.of(context).size.width,
-            //   height: MediaQuery.of(context).size.height,
-            //   child: Center(
-            //     child: Text(
-            //       "Cloudiness: 13%",
-            //       style: TextStyle(color: Colors.white, fontSize: 20),
-            //     ),
-            //   ),
-            // ),
-            // if (_showTemp)
-            // Container(
-            //   width: MediaQuery.of(context).size.width,
-            //   height: MediaQuery.of(context).size.height,
-            //   child: Center(
-            //     child: Text(
-            //       "Temperature: 30°C",
-            //       style: TextStyle(color: Colors.white, fontSize: 20),
-            //     ),
-            //   ),
-            // ),
-            if (_showAirQuality)
-            Container(
-              color: Colors.green.withOpacity(0.5),
-              width: MediaQuery.of(context).size.width,
-              height: MediaQuery.of(context).size.height,
-              // child: Center(
-              //   child: Text(
-              //     "Air Quality: Good",
-              //     style: TextStyle(color: Colors.white, fontSize: 20),
-              //   ),
-              // ),
             ),
-            // if (_showWinds)
-            // Container(
-            //   width: MediaQuery.of(context).size.width,
-            //   height: MediaQuery.of(context).size.height,
-            //   child: Center(
-            //     child: Text(
-            //       "Winds: Southwest 13 km/h",
-            //       style: TextStyle(color: Colors.white, fontSize: 20),
-            //     ),
-            //   ),
-            // ),
-            // if (_showPrecipitation)
-            // Container(
-            //   width: MediaQuery.of(context).size.width,
-            //   height: MediaQuery.of(context).size.height,
-            //   child: Center(
-            //     child: Text(
-            //       "Precipitation: 5mm",
-            //       style: TextStyle(color: Colors.white, fontSize: 20),
-            //     ),
-            //   ),
-            // ),
-            // if (_showPressure)
-            // Container(
-            //   width: MediaQuery.of(context).size.width,
-            //   height: MediaQuery.of(context).size.height,
-            //   child: Center(
-            //     child: Text(
-            //       "Pressure: 1013 mb",
-            //       style: TextStyle(color: Colors.white, fontSize: 20),
-            //     ),
-            //   ),
-            // ),
+            if (_showAirQuality)
+              Container(
+                color: Colors.green.withOpacity(0.5),
+                width: width,
+                height: height,
+              ),
             Positioned(
               bottom: 0,
-              // right: 10,
-              // left: 10,
               child: Container(
-                padding:
-                    const EdgeInsets.only(top: 10, bottom: 30, left: 10, right: 10),
-                width: MediaQuery.of(context).size.width,
-                // height: MediaQuery.of(context).size.height,
+                padding: const EdgeInsets.only(
+                  top: 10, bottom: 20, left: 10, right: 10),
+                width: width,
                 decoration: BoxDecoration(
-                  borderRadius: BorderRadius.only(topLeft: Radius.circular(15), topRight: Radius.circular(15)),
+                    borderRadius: BorderRadius.only(
+                        topLeft: Radius.circular(15),
+                        topRight: Radius.circular(15)),
                     image: DecorationImage(
-                  image: AssetImage('assets/background.png'),
-                  fit: BoxFit.cover,
-                )),
-                child: Column(
-                  children: [
-                    Row(
-                      children: [
-                        FloatingActionButton.extended(
-                          extendedIconLabelSpacing: 5.0,
-                          extendedPadding: EdgeInsets.symmetric(horizontal: 10),
-                          elevation: 0,
-                          label: _showClouds 
-                          ?  Text("78%", style: TextStyle(color: Colors.white),) 
-                          : Text("Clouds", style: TextStyle(color: Colors.black),),
-                          heroTag: "cloudsTag",
-                          icon: Image.asset(
-                            "assets/clouds.png",
-                            fit: BoxFit.contain,
-                            width: 35,
-                          ),
-                          shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(15),
-                              side: const BorderSide(
-                                  width: 2.5, color: Colors.white)),
-                          backgroundColor: _showClouds
-                              ? Colors.blue.withOpacity(0.5)
-                              : Colors.white.withOpacity(0.5),
-                          onPressed: () {
-                            setState(() {
-                              _showClouds = !_showClouds;
-                            });
-                            // updateWeatherMarkers();
-                          },
+                      image: AssetImage('assets/background.png'),
+                      fit: BoxFit.cover,
+                    )),
+                child: isLandscape
+                    ? SingleChildScrollView(
+                        scrollDirection: Axis.horizontal,
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            WeatherButton(
+                              label: "Clouds",
+                              value: '${_weather?.cloudiness ?? 0}%',
+                              icon: "assets/clouds.png",
+                              iconWidth: 35,
+                              heroTag: 'cloudsTag',
+                              condtion: _showClouds,
+                              onPressed: () {
+                                setState(() {
+                                  _showClouds = !_showClouds;
+                                });
+                              },
+                            ),
+                            SizedBox(width: width * 0.01),
+                            WeatherButton(
+                              label: "Temperature",
+                              value: '${_weather?.temperature.round() ?? 0}°C',
+                              icon: "assets/min.png",
+                              iconWidth: 15,
+                              heroTag: 'tempTag',
+                              condtion: _showTemp,
+                              onPressed: () {
+                                setState(() {
+                                  _showTemp = !_showTemp;
+                                });
+                              },
+                            ),
+                            SizedBox(width: width * 0.01),
+                            WeatherButton(
+                              label: "Air Quality",
+                              value: '${airQualityForecastDescription(aqiData?.aqi)}',
+                              icon: "assets/wind.png",
+                              iconWidth: 35,
+                              heroTag: 'airTag',
+                              condtion: _showAirQuality,
+                              onPressed: () {
+                                setState(() {
+                                  _showAirQuality = !_showAirQuality;
+                                });
+                              },
+                            ),
+                            SizedBox(width: width * 0.01),
+                            WeatherButton(
+                              label: "Winds",
+                              value: _weather != null ? '${(_weather!.windSpeed * 3.6).round()} km/h' : '--',
+                              icon: "assets/wind.png",
+                              iconWidth: 35,
+                              heroTag: 'windsTag',
+                              condtion: _showWinds,
+                              onPressed: () {
+                                setState(() {
+                                  _showWinds = !_showWinds;
+                                });
+                              },
+                            ),
+                            SizedBox(width: width * 0.01),
+                            WeatherButton(
+                              label: "Precipitation",
+                              value: _weather?.precipitation == 0.0 ||
+                                _weather?.precipitation == null
+                                  ? "No rain"
+                                  : "${(_weather?.precipitation)?.round()} mm",
+                              icon: "assets/water.png",
+                              iconWidth: 35,
+                              heroTag: 'rainTag',
+                              condtion: _showPrecipitation,
+                              onPressed: () {
+                                setState(() {
+                                  _showPrecipitation = !_showPrecipitation;
+                                });
+                              },
+                            ),
+                            SizedBox(width: width * 0.01),
+                            WeatherButton(
+                              label: "Pressure",
+                              value: '${_weather?.pressure ?? 0} mb',
+                              icon: "assets/pressure.png",
+                              iconWidth: 35,
+                              heroTag: 'pressureTag',
+                              condtion: _showPressure,
+                              onPressed: () {
+                                setState(() {
+                                  _showPressure = !_showPressure;
+                                });
+                              },
+                            ),
+                          ],
                         ),
-                        SizedBox(width: 10),
-                        FloatingActionButton.extended(
-                          extendedIconLabelSpacing: 5.0,
-                          extendedPadding: EdgeInsets.symmetric(horizontal: 10),
-                          elevation: 0,
-                          label: _showTemp 
-                          ?  Text("30°C", style: TextStyle(color: Colors.white),) 
-                          : Text("Temperature", style: TextStyle(color: Colors.black),),
-                          heroTag: "tempTag",
-                          icon: Image.asset(
-                            "assets/min.png",
-                            fit: BoxFit.contain,
-                            width: 15,
+                      )
+                    : Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        crossAxisAlignment: CrossAxisAlignment.center,
+                        children: [
+                          SizedBox(height: 10),
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              WeatherButton(
+                                label: "Clouds",
+                                value: '${_weather?.cloudiness ?? 0}%',
+                                icon: "assets/clouds.png",
+                                iconWidth: 35,
+                                heroTag: 'cloudsTag',
+                                condtion: _showClouds,
+                                onPressed: () {
+                                  setState(() {
+                                    _showClouds = !_showClouds;
+                                  });
+                                },
+                              ),
+                              SizedBox(width: 8),
+                              WeatherButton(
+                                label: "Temperature",
+                                value: '${_weather?.temperature.round() ?? 0}°C',
+                                icon: "assets/min.png",
+                                iconWidth: 15,
+                                heroTag: 'tempTag',
+                                condtion: _showTemp,
+                                onPressed: () {
+                                  setState(() {
+                                    _showTemp = !_showTemp;
+                                  });
+                                },
+                              ),
+                              SizedBox(width: 8),
+                              WeatherButton(
+                                label: "Air Quality",
+                                value: '${airQualityForecastDescription(aqiData?.aqi)}',
+                                icon: "assets/wind.png",
+                                iconWidth: 35,
+                                heroTag: 'airTag',
+                                condtion: _showAirQuality,
+                                onPressed: () {
+                                  setState(() {
+                                    _showAirQuality = !_showAirQuality;
+                                  });
+                                },
+                              ),
+                            ],
                           ),
-                          shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(15),
-                              side: const BorderSide(
-                                  width: 2.5, color: Colors.white)),
-                          backgroundColor: _showTemp
-                              ? Colors.blue.withOpacity(0.5)
-                              : Colors.white.withOpacity(0.5),
-                          onPressed: () {
-                            setState(() {
-                              _showTemp = !_showTemp;
-                              // updateWeatherMarkers();
-                            });
-                          },
-                        ),
-                        SizedBox(width: 10),
-                        FloatingActionButton.extended(
-                          extendedIconLabelSpacing: 5.0,
-                          extendedPadding: EdgeInsets.symmetric(horizontal: 10),
-                          elevation: 0,
-                          label: _showAirQuality 
-                          ?  Text("Good", style: TextStyle(color: Colors.white),) 
-                          : Text("Air Quality", style: TextStyle(color: Colors.black),),
-                          heroTag: "airTag",
-                          icon: Image.asset(
-                            "assets/wind.png",
-                            fit: BoxFit.contain,
-                            width: 35,
+                          SizedBox(height: 10),
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              WeatherButton(
+                                label: "Winds",
+                                value: _weather != null ? '${(_weather!.windSpeed * 3.6).round()} km/h' : '--',
+                                icon: "assets/wind.png",
+                                iconWidth: 35,
+                                heroTag: 'windsTag',
+                                condtion: _showWinds,
+                                onPressed: () {
+                                  setState(() {
+                                    _showWinds = !_showWinds;
+                                  });
+                                },
+                              ),
+                              SizedBox(width: 8),
+                              WeatherButton(
+                                label: "Precipitation",
+                                value: _weather?.precipitation == 0.0 ||
+                                  _weather?.precipitation == null
+                                    ? "No rain"
+                                    : "${(_weather?.precipitation)?.round()} mm",
+                                icon: "assets/water.png",
+                                iconWidth: 35,
+                                heroTag: 'rainTag',
+                                condtion: _showPrecipitation,
+                                onPressed: () {
+                                  setState(() {
+                                    _showPrecipitation = !_showPrecipitation;
+                                  });
+                                },
+                              ),
+                              SizedBox(width: 8),
+                              WeatherButton(
+                                label: "Pressure",
+                                value: '${_weather?.pressure ?? 0} mb',
+                                icon: "assets/pressure.png",
+                                iconWidth: 35,
+                                heroTag: 'pressureTag',
+                                condtion: _showPressure,
+                                onPressed: () {
+                                  setState(() {
+                                    _showPressure = !_showPressure;
+                                  });
+                                },
+                              )
+                            ],
                           ),
-                          shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(15),
-                              side: const BorderSide(
-                                  width: 2.5, color: Colors.white)),
-                          backgroundColor: _showAirQuality
-                              ? Colors.blue.withOpacity(0.5)
-                              : Colors.white.withOpacity(0.5),
-                          onPressed: () {
-                            setState(() {
-                              _showAirQuality = !_showAirQuality;
-                            });
-                            // updateWeatherMarkers();
-                          },
-                        ),
-                      ],
-                    ),
-                    SizedBox(height: 10),
-                    Row(
-                      children: [
-                        FloatingActionButton.extended(
-                          extendedIconLabelSpacing: 3.0,
-                          extendedPadding: EdgeInsets.symmetric(horizontal: 10),
-                          elevation: 0,
-                          label: _showWinds 
-                          ?  Text("6 km/h", style: TextStyle(color: Colors.white),) 
-                          : Text("Winds", style: TextStyle(color: Colors.black),),
-                          heroTag: "windsTag",
-                          icon: Image.asset(
-                            "assets/wind.png",
-                            fit: BoxFit.contain,
-                            width: 35,
-                          ),
-                          shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(15),
-                              side: const BorderSide(
-                                  width: 2.5, color: Colors.white)),
-                          backgroundColor: _showWinds
-                              ? Colors.blue.withOpacity(0.5)
-                              : Colors.white.withOpacity(0.5),
-                          onPressed: () {
-                            setState(() {
-                              _showWinds = !_showWinds;
-                            });
-                            // updateWeatherMarkers();
-                          },
-                        ),
-                        SizedBox(width: 10),
-                        FloatingActionButton.extended(
-                          extendedIconLabelSpacing: 0.0,
-                          extendedPadding: EdgeInsets.symmetric(horizontal: 10),
-                          elevation: 0,
-                          label: _showPrecipitation 
-                          ?  Text("2 mm", style: TextStyle(color: Colors.white),) 
-                          : Text("Precipitation", style: TextStyle(color: Colors.black),),
-                          heroTag: "rainTag",
-                          icon: Image.asset(
-                            "assets/water.png",
-                            fit: BoxFit.contain,
-                            width: 35,
-                          ),
-                          shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(15),
-                              side: const BorderSide(
-                                  width: 2.5, color: Colors.white)),
-                          backgroundColor: _showPrecipitation
-                              ? Colors.blue.withOpacity(0.5)
-                              : Colors.white.withOpacity(0.5),
-                          onPressed: () {
-                            setState(() {
-                              _showPrecipitation = !_showPrecipitation;
-                            });
-                            // updateWeatherMarkers();
-                          },
-                        ),
-                        SizedBox(width: 10),
-                        FloatingActionButton.extended(
-                          extendedIconLabelSpacing: 3.0,
-                          extendedPadding: EdgeInsets.symmetric(horizontal: 10),
-                          elevation: 0,
-                          label: _showPressure 
-                          ?  Text("1013 mb", style: TextStyle(color: Colors.white),) 
-                          : Text("Pressure", style: TextStyle(color: Colors.black),),
-                          heroTag: "pressureTag",
-                          icon: Image.asset(
-                            "assets/pressure.png",
-                            fit: BoxFit.contain,
-                            width: 35,
-                          ),
-                          shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(15),
-                              side: const BorderSide(
-                                  width: 2.5, color: Colors.white)),
-                          backgroundColor: _showPressure
-                              ? Colors.blue.withOpacity(0.5)
-                              : Colors.white.withOpacity(0.5),
-                          onPressed: () {
-                            setState(() {
-                              _showPressure = !_showPressure;
-                            });
-                            // updateWeatherMarkers();
-                          },
-                        ),
-                      ],
-                    ),
-                  ],
-                ),
+                        ],
+                      ),
               ),
             ),
           ],
         ),
       ),
+    );
+  }
+}
+
+class WeatherButton extends StatefulWidget {
+  final String label;
+  final String value;
+  final String icon;
+  final double iconWidth;
+  final String heroTag;
+  final bool condtion;
+  final VoidCallback onPressed;
+
+  WeatherButton({
+    required this.label,
+    required this.value,
+    required this.icon,
+    required this.iconWidth,
+    required this.heroTag,
+    required this.condtion,
+    required this.onPressed,
+  });
+
+  @override
+  State<WeatherButton> createState() => _WeatherButtonState();
+}
+
+class _WeatherButtonState extends State<WeatherButton> {
+  @override
+  Widget build(BuildContext context) {
+    bool isLandscape = ScreenSize.orientation(context);
+
+    return FloatingActionButton.extended(
+      elevation: 0,
+      extendedIconLabelSpacing: isLandscape ? 10.0
+        : widget.heroTag == 'rainTag' ? 0.0 : 5.0,
+      extendedPadding: EdgeInsets.symmetric(horizontal: 10),
+      heroTag: "${widget.heroTag}",
+      label: widget.condtion
+        ? Text(
+          widget.value,
+          style: TextStyle(color: Colors.white),
+        )
+        : Text(
+          widget.label,
+          style: TextStyle(color: Colors.black),
+        ),
+      icon: Image.asset(
+        widget.icon,
+        fit: BoxFit.contain,
+        width: widget.iconWidth,
+      ),
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(15),
+        side: const BorderSide(width: 2.5, color: Colors.white)),
+      backgroundColor: widget.condtion
+        ? Colors.blue.withOpacity(0.5)
+        : Colors.white.withOpacity(0.5),
+      onPressed: () {
+        widget.onPressed();
+      },
     );
   }
 }
