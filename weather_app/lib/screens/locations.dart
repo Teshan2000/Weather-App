@@ -1,9 +1,6 @@
 import 'package:flutter/material.dart';
-// import 'package:shared_preferences/shared_preferences.dart';
 import 'package:weather_app/providers/weatherService.dart';
 import 'package:weather_app/models/weatherModel.dart';
-import 'dart:convert';
-
 import 'package:weather_app/screens/cityWeather.dart';
 
 class Locations extends StatefulWidget {
@@ -16,7 +13,6 @@ class Locations extends StatefulWidget {
 class _LocationsState extends State<Locations> {
   final TextEditingController _cityController = TextEditingController();
   final _WeatherService = WeatherService('c3281946b6139602ecabb86fd3e733c2');
-  // Weather? _weather;
   List<String> _suggestions = [];
   List<Weather> _addedCitiesWeather = [];
 
@@ -46,35 +42,6 @@ class _LocationsState extends State<Locations> {
         return 'assets/clear.png';
     }
   }
-
-  @override
-  void initState() {
-    super.initState();
-    // WidgetsBinding.instance.addPostFrameCallback((_) {
-    //   _loadSavedCities();
-    // });
-  }
-
-  // void _loadSavedCities() async {
-  //   final prefs = await SharedPreferences.getInstance();
-  //   final savedCities = prefs.getStringList('savedCities') ?? [];
-  //   final List<Weather> savedWeatherData = savedCities.map((city) {
-  //     final Map<String, dynamic> weatherMap = json.decode(city);
-  //     return Weather.fromJson(weatherMap);
-  //   }).toList();
-
-  //   setState(() {
-  //     _addedCitiesWeather = savedWeatherData;
-  //   });
-  // }
-
-  // void _saveCities() async {
-  //   final prefs = await SharedPreferences.getInstance();
-  //   final savedCities = _addedCitiesWeather
-  //       .map((weather) => json.encode(weather.toJson()))
-  //       .toList();
-  //   await prefs.setStringList('savedCities', savedCities);
-  // }
 
   void _onCityChanged(String query) async {
     if (query.isEmpty) {
@@ -112,7 +79,6 @@ class _LocationsState extends State<Locations> {
         _cityController.clear();
         _suggestions = [];
       });
-      // _saveCities();
     } catch (e) {
       print(e);
     }
@@ -122,16 +88,21 @@ class _LocationsState extends State<Locations> {
     setState(() {
       _addedCitiesWeather.removeAt(index);
     });
-    // _saveCities();
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      extendBodyBehindAppBar: true,
       appBar: AppBar(
         elevation: 0,
-        backgroundColor: Colors.transparent,        
+        flexibleSpace: Container(
+          decoration: const BoxDecoration(
+            image: DecorationImage(
+              image: AssetImage('assets/background.png'),
+              fit: BoxFit.cover,
+            ),
+          ),
+        ),
         title: const Center(
           child: Text("Add more cities"),
         ),
@@ -155,9 +126,6 @@ class _LocationsState extends State<Locations> {
             child: SafeArea(
               child: Column(
                 children: [
-                  const SizedBox(
-                    height: 10,
-                  ),
                   Container(
                     width: double.infinity,
                     decoration: ShapeDecoration(
@@ -173,12 +141,10 @@ class _LocationsState extends State<Locations> {
                       shadows: [
                         BoxShadow(
                           color: Colors.blue.withOpacity(0.5),
-                          // spreadRadius: 3,
                           blurRadius: 7,
                           offset: Offset(0, 6),
                         ),
                       ],
-                      // color: Colors.white.withOpacity(0.50),
                     ),
                     child: Padding(
                       padding: const EdgeInsets.only(
@@ -228,6 +194,7 @@ class _LocationsState extends State<Locations> {
                   ),
                   ListView.builder(
                     shrinkWrap: true,
+                    physics: const NeverScrollableScrollPhysics(),
                     itemCount: _suggestions.length,
                     itemBuilder: (context, index) {
                       return ListTile(
@@ -239,11 +206,12 @@ class _LocationsState extends State<Locations> {
                     },
                   ),
                   const SizedBox(
-                    height: 30,
+                    height: 20,
                   ),
                   if (_addedCitiesWeather.isNotEmpty)
                     ListView.builder(
                       shrinkWrap: true,
+                      physics: const NeverScrollableScrollPhysics(),
                       itemCount: _addedCitiesWeather.length,
                       itemBuilder: (context, index) {
                         final weather = _addedCitiesWeather[index];
@@ -290,9 +258,8 @@ class _LocationsState extends State<Locations> {
                                           width: 20,
                                         ),
                                         Image.asset(
-                                            getWeatherAnimation(
-                                                weather.mainCondition),
-                                            width: 30),
+                                          getWeatherAnimation(weather.mainCondition),
+                                          width: 30),
                                         SizedBox(
                                           width: 20,
                                         ),
@@ -322,7 +289,7 @@ class _LocationsState extends State<Locations> {
                                 context,
                                 MaterialPageRoute(
                                     builder: (context) => CityWeather(
-                                          cityName: weather.cityName,
+                                          weather: weather,
                                         )));
                           },
                         );
