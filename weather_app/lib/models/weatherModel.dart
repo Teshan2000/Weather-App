@@ -14,6 +14,7 @@ class Weather {
   final int cloudiness;
   final int sunrise;
   final int sunset;
+  final int timezone;
   final String mainCondition;
 
   Weather({
@@ -32,6 +33,7 @@ class Weather {
     required this.cloudiness,
     required this.sunrise,
     required this.sunset,
+    required this.timezone,
     this.precipitation,
   });
 
@@ -53,6 +55,7 @@ class Weather {
       cloudiness: json['clouds']['all'],
       sunrise: json['sys']['sunrise']?.toInt(),
       sunset: json['sys']['sunset']?.toInt(),
+      timezone: json['timezone']?.toInt() ?? 0,
     );
   }
 
