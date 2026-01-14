@@ -28,20 +28,23 @@ class _HomeState extends State<Home> {
   List<AirQualityForecast>? airforecasts;
   late Future<List<AirQualityForecast>> airQualityData;
   String? cityName;
+  double? userLatitude;
+  double? userLongitude;
 
   fetchWeather() async {
-    cityName = await _WeatherService.getCurrentCity();
     try {
-      final weather = await _WeatherService.getWeather(cityName!);
-      var weatherForecasts = await _WeatherService.getFiveDayForecast(cityName!);
+      final locationData = await _WeatherService.getCurrentCityWithPosition();
+      cityName = locationData['city'];
+      userLatitude = locationData['latitude'];
+      userLongitude = locationData['longitude'];
 
-      List<Location> locations = await locationFromAddress(cityName!);
-      double lat = locations[0].latitude;
-      double lon = locations[0].longitude;
+      final weather = await _WeatherService.getWeather(cityName!);
+      var weatherForecasts =
+          await _WeatherService.getFiveDayForecast(cityName!);
 
       final results = await Future.wait([
-        _WeatherService.fetchAirQuality(lat, lon),
-        _WeatherService.fetchAirQualityForecast(lat, lon),
+        _WeatherService.fetchAirQuality(userLatitude!, userLongitude!),
+        _WeatherService.fetchAirQualityForecast(userLatitude!, userLongitude!),
       ]);
       setState(() {
         aqiData = results[0] as AirQuality;
@@ -119,20 +122,22 @@ class _HomeState extends State<Home> {
     double height = ScreenSize.height(context);
     bool isLandscape = ScreenSize.orientation(context);
 
-    var now = DateTime.now();
+    var nowUtc = DateTime.now().toUtc();
+    var cityNow = _weather != null
+      ? nowUtc.add(Duration(seconds: _weather!.timezone)) : nowUtc;
     var formatterDate = DateFormat('EEE d MMM');
     var formatterTime = DateFormat('kk:mm');
-    String actualDate = formatterDate.format(now);
-    String actualTime = formatterTime.format(now);
+    String actualDate = formatterDate.format(cityNow);
+    String actualTime = formatterTime.format(cityNow);
 
     return Scaffold(
       body: Container(
         width: width,
         height: height,
         decoration: BoxDecoration(
-            image: DecorationImage(
-          image: AssetImage('assets/background.png'),
-          fit: BoxFit.cover,
+          image: DecorationImage(
+            image: AssetImage('assets/background.png'),
+            fit: BoxFit.cover,
         )),
         child: SingleChildScrollView(
           child: Column(
@@ -141,7 +146,8 @@ class _HomeState extends State<Home> {
                   ? Column(
                       children: [
                         Container(
-                          height: isLandscape ? 950 : 810,
+                          // height: isLandscape ? 950 : 800,
+                          height: isLandscape ? height * 1.15 : height * 1.05,
                           width: double.infinity,
                           decoration: ShapeDecoration(
                             shape: const RoundedRectangleBorder(
@@ -196,7 +202,11 @@ class _HomeState extends State<Home> {
                                         onPressed: () {
                                           Navigator.push(
                                             context, MaterialPageRoute(
-                                              builder: (context) => WeatherMap(city: cityName ?? 'Unknown')));
+                                              builder: (context) => WeatherMap(
+                                                city: cityName ?? 'Unknown',
+                                                latitude: userLatitude,
+                                                longitude: userLongitude,
+                                              )));
                                         },
                                         icon: const Icon(Icons.map_outlined)),
                                     )
@@ -572,7 +582,7 @@ class _HomeState extends State<Home> {
                                                 width: 35,
                                               ),
                                               Text(
-                                                "${DateFormat('HH:mm').format(DateTime.fromMillisecondsSinceEpoch(_weather!.sunrise * 1000).toLocal())}",
+                                                "${DateFormat('HH:mm').format(DateTime.fromMillisecondsSinceEpoch((_weather!.sunrise * 1000) + (_weather!.timezone * 1000), isUtc: true))}",
                                                 style: TextStyle(
                                                   fontSize: 15,
                                                   color: Colors.blue,
@@ -580,10 +590,9 @@ class _HomeState extends State<Home> {
                                               ),
                                             ],
                                           )
-                                        : Center(
-                                          child: CircularProgressIndicator()),
-                                        _weather != null
-                                          ? Row(
+                                        : Center(child: CircularProgressIndicator()),
+                                      _weather != null
+                                        ? Row(
                                             mainAxisAlignment: MainAxisAlignment.spaceAround,
                                             children: [
                                               const Text(
@@ -596,7 +605,7 @@ class _HomeState extends State<Home> {
                                                 width: 35,
                                               ),
                                               Text(
-                                                "${DateFormat('HH:mm').format(DateTime.fromMillisecondsSinceEpoch(_weather!.sunset * 1000).toLocal())}",
+                                                "${DateFormat('HH:mm').format(DateTime.fromMillisecondsSinceEpoch((_weather!.sunset * 1000) + (_weather!.timezone * 1000), isUtc: true))}",
                                                 style: TextStyle(
                                                   fontSize: 15,
                                                   color: Colors.blue,
@@ -711,7 +720,8 @@ class _HomeState extends State<Home> {
                                 ),
                               ),
                               const SizedBox(width: 5),
-                              _weather?.temperature != null && _weather?.humidity != null
+                              _weather?.temperature != null &&
+                              _weather?.humidity != null
                                   ? Container(
                                       width: isLandscape ? 375 : 175,
                                       height: 65,
@@ -809,7 +819,7 @@ class _HomeState extends State<Home> {
                                   ],
                                 ),
                               )
-                          : CircularProgressIndicator(),
+                            : CircularProgressIndicator(),
                         SizedBox(height: isLandscape ? height * 0.04 : 15),
                         Padding(
                           padding: const EdgeInsets.symmetric(horizontal: 10),
@@ -881,8 +891,7 @@ class _HomeState extends State<Home> {
                                           color: Colors.blue,
                                           fontWeight: FontWeight.bold),
                                       )
-                                      : Center(
-                                        child: CircularProgressIndicator()),
+                                    : Center(child: CircularProgressIndicator()),
                                   ],
                                 ),
                               ),

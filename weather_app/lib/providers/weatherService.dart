@@ -40,6 +40,25 @@ class WeatherService {
     return city ?? '';
   }
 
+  Future<Map<String, dynamic>> getCurrentCityWithPosition() async {
+    LocationPermission permission = await Geolocator.checkPermission();
+
+    if (permission == LocationPermission.denied) {
+      permission = await Geolocator.requestPermission();
+    }
+    Position position = await Geolocator.getCurrentPosition(
+        desiredAccuracy: LocationAccuracy.high);
+    List<Placemark> placemarks =
+        await placemarkFromCoordinates(position.latitude, position.longitude);
+
+    String? city = placemarks[0].locality;
+    return {
+      'city': city ?? '',
+      'latitude': position.latitude,
+      'longitude': position.longitude,
+    };
+  }
+
   Future<List<Forecast>> getFiveDayForecast(String cityName) async {
     final response = await http.get(
         Uri.parse('$Base_URL/forecast?q=$cityName&appid=$apiKey&units=metric'));
@@ -69,7 +88,7 @@ class WeatherService {
 
     if (response.statusCode == 200) {
       final data = json.decode(response.body);
-      print('Air quality response: $data'); // Log the response
+      print('Air quality response: $data');
       final airQualityData = data['list'][0];
       return AirQuality.fromJson(airQualityData);
     } else {
@@ -96,7 +115,6 @@ class WeatherService {
         }
       }
       return groupedForecasts.values.toList();
-      // return forecasts.map((forecast) => AirQualityForecast.fromJson(forecast)).toList();
     } else {
       throw Exception('Failed to fetch Air Quality Forecast');
     }

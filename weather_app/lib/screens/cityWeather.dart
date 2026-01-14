@@ -147,12 +147,12 @@ class _CityWeatherState extends State<CityWeather> {
                 ? Column(
                     children: [
                       Container(
-                        height: isLandscape ? 950 : 810,
+                        height: isLandscape ? height * 1.15 : height * 1.05,
                         width: double.infinity,
                         decoration: ShapeDecoration(
                           shape: const RoundedRectangleBorder(
                             borderRadius: BorderRadius.only(
-                              bottomLeft: Radius.circular(20),
+                            bottomLeft: Radius.circular(20),
                               bottomRight: Radius.circular(20)),
                           ),
                           shadows: [
@@ -280,9 +280,9 @@ class _CityWeatherState extends State<CityWeather> {
                                             Text(
                                               "${_weather?.humidity}%",
                                               style: TextStyle(
-                                                  fontSize: 15,
-                                                  color: Colors.blue,
-                                                  fontWeight: FontWeight.bold),
+                                                fontSize: 15,
+                                                color: Colors.blue,
+                                                fontWeight: FontWeight.bold),
                                             ),
                                           ],
                                         ),
@@ -403,8 +403,7 @@ class _CityWeatherState extends State<CityWeather> {
                                   ]),
                             ),
                             Container(
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: 0, vertical: 10),
+                              padding: const EdgeInsets.symmetric(vertical: 10),
                               height: 145,
                               width: double.infinity,
                               child: ListView(
@@ -443,16 +442,16 @@ class _CityWeatherState extends State<CityWeather> {
                                           Text(
                                             "${forecast.temperature.round()}°C",
                                             style: const TextStyle(
-                                                fontSize: 15,
-                                                color: Colors.blue,
-                                                fontWeight: FontWeight.bold),
+                                              fontSize: 15,
+                                              color: Colors.blue,
+                                              fontWeight: FontWeight.bold),
                                           ),
                                           const SizedBox(height: 5),
                                           Text(
                                             forecast.mainCondition,
                                             style: const TextStyle(
-                                                fontSize: 15,
-                                                color: Colors.blue),
+                                              fontSize: 15,
+                                              color: Colors.blue),
                                           ),
                                         ],
                                       ),
@@ -471,14 +470,13 @@ class _CityWeatherState extends State<CityWeather> {
                             mainAxisAlignment: MainAxisAlignment.spaceBetween,
                             children: <Widget>[
                               Padding(
-                                padding:
-                                    const EdgeInsets.symmetric(horizontal: 10),
+                                padding: const EdgeInsets.symmetric(horizontal: 10),
                                 child: const Text(
                                   "Today Forecast",
                                   textAlign: TextAlign.start,
                                   style: TextStyle(
-                                      fontSize: 16,
-                                      fontWeight: FontWeight.bold),
+                                    fontSize: 16,
+                                    fontWeight: FontWeight.bold),
                                 ),
                               ),
                             ]),
@@ -496,17 +494,15 @@ class _CityWeatherState extends State<CityWeather> {
                               decoration: ShapeDecoration(
                                 color: Colors.white.withOpacity(0.5),
                                 shape: RoundedRectangleBorder(
-                                    borderRadius: BorderRadius.circular(15),
-                                    side: const BorderSide(
-                                        width: 2.5, color: Colors.white)),
+                                  borderRadius: BorderRadius.circular(15),
+                                  side: const BorderSide(
+                                    width: 2.5, color: Colors.white)),
                               ),
                               child: Column(
-                                mainAxisAlignment:
-                                    MainAxisAlignment.spaceAround,
+                                mainAxisAlignment: MainAxisAlignment.spaceAround,
                                 children: [
                                   Row(
-                                    mainAxisAlignment:
-                                        MainAxisAlignment.spaceAround,
+                                    mainAxisAlignment: MainAxisAlignment.spaceAround,
                                     children: [
                                       const Text(
                                         "Min Temp",
@@ -520,15 +516,14 @@ class _CityWeatherState extends State<CityWeather> {
                                       Text(
                                         "${_weather?.minTemp.round()}°C",
                                         style: TextStyle(
-                                            fontSize: 15,
-                                            color: Colors.blue,
-                                            fontWeight: FontWeight.bold),
+                                          fontSize: 15,
+                                          color: Colors.blue,
+                                          fontWeight: FontWeight.bold),
                                       ),
                                     ],
                                   ),
                                   Row(
-                                    mainAxisAlignment:
-                                        MainAxisAlignment.spaceAround,
+                                    mainAxisAlignment: MainAxisAlignment.spaceAround,
                                     children: [
                                       const Text(
                                         "Max Temp",
@@ -542,9 +537,9 @@ class _CityWeatherState extends State<CityWeather> {
                                       Text(
                                         "${_weather?.maxTemp.round()}°C",
                                         style: TextStyle(
-                                            fontSize: 15,
-                                            color: Colors.blue,
-                                            fontWeight: FontWeight.bold),
+                                          fontSize: 15,
+                                          color: Colors.blue,
+                                          fontWeight: FontWeight.bold),
                                       ),
                                     ],
                                   ),
@@ -559,18 +554,16 @@ class _CityWeatherState extends State<CityWeather> {
                               decoration: ShapeDecoration(
                                 color: Colors.white.withOpacity(0.5),
                                 shape: RoundedRectangleBorder(
-                                    borderRadius: BorderRadius.circular(15),
-                                    side: const BorderSide(
-                                        width: 2.5, color: Colors.white)),
+                                  borderRadius: BorderRadius.circular(15),
+                                  side: const BorderSide(
+                                    width: 2.5, color: Colors.white)),
                               ),
                               child: Column(
-                                mainAxisAlignment:
-                                    MainAxisAlignment.spaceAround,
+                                mainAxisAlignment: MainAxisAlignment.spaceAround,
                                 children: [
                                   _weather != null
                                       ? Row(
-                                          mainAxisAlignment:
-                                              MainAxisAlignment.spaceAround,
+                                          mainAxisAlignment: MainAxisAlignment.spaceAround,
                                           children: [
                                             const Text(
                                               "Sunrise",
@@ -584,39 +577,36 @@ class _CityWeatherState extends State<CityWeather> {
                                             Text(
                                               "${DateFormat('HH:mm').format(DateTime.fromMillisecondsSinceEpoch((_weather!.sunrise * 1000) + (_weather!.timezone * 1000), isUtc: true))}",
                                               style: TextStyle(
-                                                  fontSize: 15,
-                                                  color: Colors.blue,
-                                                  fontWeight: FontWeight.bold),
+                                                fontSize: 15,
+                                                color: Colors.blue,
+                                                fontWeight: FontWeight.bold),
                                             ),
                                           ],
                                         )
-                                      : Center(
-                                          child: CircularProgressIndicator()),
-                                  _weather != null
+                                      : Center(child: CircularProgressIndicator()),
+                                    _weather != null
                                       ? Row(
-                                          mainAxisAlignment:
-                                              MainAxisAlignment.spaceAround,
+                                          mainAxisAlignment: MainAxisAlignment.spaceAround,
                                           children: [
                                             const Text(
                                               "Sunset",
                                               style: TextStyle(fontSize: 15),
                                             ),
                                             Image.asset(
-                                              'assets/clear.png',
+                                              'assets/night clear.png',
                                               fit: BoxFit.contain,
                                               width: 35,
                                             ),
                                             Text(
                                               "${DateFormat('HH:mm').format(DateTime.fromMillisecondsSinceEpoch((_weather!.sunset * 1000) + (_weather!.timezone * 1000), isUtc: true))}",
                                               style: TextStyle(
-                                                  fontSize: 15,
-                                                  color: Colors.blue,
-                                                  fontWeight: FontWeight.bold),
+                                                fontSize: 15,
+                                                color: Colors.blue,
+                                                fontWeight: FontWeight.bold),
                                             ),
                                           ],
                                         )
-                                      : Center(
-                                          child: CircularProgressIndicator()),
+                                      : Center(child: CircularProgressIndicator()),
                                 ],
                               ),
                             ),
@@ -626,28 +616,23 @@ class _CityWeatherState extends State<CityWeather> {
                       SizedBox(height: isLandscape ? height * 0.04 : 15),
                       _weather?.windDirection != null
                           ? Padding(
-                              padding:
-                                  const EdgeInsets.symmetric(horizontal: 10),
+                              padding: const EdgeInsets.symmetric(horizontal: 10),
                               child: Row(
-                                mainAxisAlignment:
-                                    MainAxisAlignment.spaceEvenly,
+                                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                                 children: <Widget>[
                                   Container(
                                     width: isLandscape ? 770 : 360,
                                     height: 65,
-                                    padding: const EdgeInsets.symmetric(
-                                        vertical: 10),
+                                    padding: const EdgeInsets.symmetric(vertical: 10),
                                     decoration: ShapeDecoration(
                                       color: Colors.white.withOpacity(0.5),
                                       shape: RoundedRectangleBorder(
-                                          borderRadius:
-                                              BorderRadius.circular(15),
-                                          side: const BorderSide(
-                                              width: 2.5, color: Colors.white)),
+                                        borderRadius: BorderRadius.circular(15),
+                                        side: const BorderSide(
+                                          width: 2.5, color: Colors.white)),
                                     ),
                                     child: Row(
-                                      mainAxisAlignment:
-                                          MainAxisAlignment.spaceAround,
+                                      mainAxisAlignment: MainAxisAlignment.spaceAround,
                                       children: [
                                         const Text(
                                           "Wind",
@@ -659,16 +644,14 @@ class _CityWeatherState extends State<CityWeather> {
                                           width: 45,
                                         ),
                                         Text(
-                                          getWindDirection(
-                                              _weather!.windDirection),
+                                          getWindDirection(_weather!.windDirection),
                                           style: TextStyle(
-                                              fontSize: 15,
-                                              color: Colors.blue,
-                                              fontWeight: FontWeight.bold),
+                                            fontSize: 15,
+                                            color: Colors.blue,
+                                            fontWeight: FontWeight.bold),
                                         ),
                                         Transform.rotate(
-                                          angle: _weather!.windDirection
-                                              .toDouble(),
+                                          angle: _weather!.windDirection.toDouble(),
                                           child: Icon(
                                             Icons.arrow_right_alt,
                                             size: 30,
@@ -678,9 +661,9 @@ class _CityWeatherState extends State<CityWeather> {
                                         Text(
                                           "${(_weather!.windSpeed * 3.6).round()} km/h",
                                           style: TextStyle(
-                                              fontSize: 15,
-                                              color: Colors.blue,
-                                              fontWeight: FontWeight.bold),
+                                            fontSize: 15,
+                                            color: Colors.blue,
+                                            fontWeight: FontWeight.bold),
                                         ),
                                       ],
                                     ),
@@ -688,7 +671,7 @@ class _CityWeatherState extends State<CityWeather> {
                                 ],
                               ),
                             )
-                          : CircularProgressIndicator(),
+                        : CircularProgressIndicator(),
                       SizedBox(height: isLandscape ? height * 0.04 : 15),
                       Padding(
                         padding: const EdgeInsets.symmetric(horizontal: 12),
@@ -702,13 +685,12 @@ class _CityWeatherState extends State<CityWeather> {
                               decoration: ShapeDecoration(
                                 color: Colors.white.withOpacity(0.5),
                                 shape: RoundedRectangleBorder(
-                                    borderRadius: BorderRadius.circular(15),
-                                    side: const BorderSide(
-                                        width: 2.5, color: Colors.white)),
+                                  borderRadius: BorderRadius.circular(15),
+                                  side: const BorderSide(
+                                    width: 2.5, color: Colors.white)),
                               ),
                               child: Row(
-                                mainAxisAlignment:
-                                    MainAxisAlignment.spaceAround,
+                                mainAxisAlignment: MainAxisAlignment.spaceAround,
                                 children: [
                                   const Text(
                                     "Feels Like",
@@ -722,32 +704,29 @@ class _CityWeatherState extends State<CityWeather> {
                                   Text(
                                     "${_weather?.feelsLike.round()}°C",
                                     style: TextStyle(
-                                        fontSize: 15,
-                                        color: Colors.blue,
-                                        fontWeight: FontWeight.bold),
+                                      fontSize: 15,
+                                      color: Colors.blue,
+                                      fontWeight: FontWeight.bold),
                                   ),
                                 ],
                               ),
                             ),
                             const SizedBox(width: 5),
                             _weather?.temperature != null &&
-                                    _weather?.humidity != null
+                            _weather?.humidity != null
                                 ? Container(
                                     width: isLandscape ? 375 : 175,
                                     height: 65,
-                                    padding: const EdgeInsets.symmetric(
-                                        vertical: 10),
+                                    padding: const EdgeInsets.symmetric(vertical: 10),
                                     decoration: ShapeDecoration(
                                       color: Colors.white.withOpacity(0.5),
                                       shape: RoundedRectangleBorder(
-                                          borderRadius:
-                                              BorderRadius.circular(15),
-                                          side: const BorderSide(
-                                              width: 2.5, color: Colors.white)),
+                                        borderRadius: BorderRadius.circular(15),
+                                        side: const BorderSide(
+                                          width: 2.5, color: Colors.white)),
                                     ),
                                     child: Row(
-                                      mainAxisAlignment:
-                                          MainAxisAlignment.spaceAround,
+                                      mainAxisAlignment: MainAxisAlignment.spaceAround,
                                       children: [
                                         const Text(
                                           "Dew Point",
@@ -761,9 +740,9 @@ class _CityWeatherState extends State<CityWeather> {
                                         Text(
                                           "${((_weather?.temperature)! - ((100 - _weather!.humidity) / 5)).round()}°C",
                                           style: TextStyle(
-                                              fontSize: 15,
-                                              color: Colors.blue,
-                                              fontWeight: FontWeight.bold),
+                                            fontSize: 15,
+                                            color: Colors.blue,
+                                            fontWeight: FontWeight.bold),
                                         ),
                                       ],
                                     ),
@@ -775,28 +754,23 @@ class _CityWeatherState extends State<CityWeather> {
                       SizedBox(height: isLandscape ? height * 0.04 : 15),
                       _weather?.windDirection != null
                           ? Padding(
-                              padding:
-                                  const EdgeInsets.symmetric(horizontal: 10),
+                              padding: const EdgeInsets.symmetric(horizontal: 10),
                               child: Row(
-                                mainAxisAlignment:
-                                    MainAxisAlignment.spaceEvenly,
+                                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                                 children: <Widget>[
                                   Container(
                                     width: isLandscape ? 770 : 360,
                                     height: 65,
-                                    padding: const EdgeInsets.symmetric(
-                                        vertical: 10),
+                                    padding: const EdgeInsets.symmetric(vertical: 10),
                                     decoration: ShapeDecoration(
                                       color: Colors.white.withOpacity(0.5),
                                       shape: RoundedRectangleBorder(
-                                          borderRadius:
-                                              BorderRadius.circular(15),
-                                          side: const BorderSide(
-                                              width: 2.5, color: Colors.white)),
+                                        borderRadius: BorderRadius.circular(15),
+                                        side: const BorderSide(
+                                          width: 2.5, color: Colors.white)),
                                     ),
                                     child: Row(
-                                      mainAxisAlignment:
-                                          MainAxisAlignment.spaceAround,
+                                      mainAxisAlignment: MainAxisAlignment.spaceAround,
                                       children: [
                                         Text(
                                           "Gust",
@@ -808,16 +782,14 @@ class _CityWeatherState extends State<CityWeather> {
                                           width: 45,
                                         ),
                                         Text(
-                                          getWindDirection(
-                                              _weather!.windDirection),
+                                          getWindDirection(_weather!.windDirection),
                                           style: TextStyle(
-                                              fontSize: 15,
-                                              color: Colors.blue,
-                                              fontWeight: FontWeight.bold),
+                                            fontSize: 15,
+                                            color: Colors.blue,
+                                            fontWeight: FontWeight.bold),
                                         ),
                                         Transform.rotate(
-                                          angle: (_weather!.windDirection
-                                              .toDouble()),
+                                          angle: (_weather!.windDirection.toDouble()),
                                           child: Icon(
                                             Icons.arrow_right_alt,
                                             size: 30,
@@ -827,9 +799,9 @@ class _CityWeatherState extends State<CityWeather> {
                                         Text(
                                           "${(_weather!.gustSpeed * 3.6).round()} km/h",
                                           style: TextStyle(
-                                              fontSize: 15,
-                                              color: Colors.blue,
-                                              fontWeight: FontWeight.bold),
+                                            fontSize: 15,
+                                            color: Colors.blue,
+                                            fontWeight: FontWeight.bold),
                                         ),
                                       ],
                                     ),
@@ -851,13 +823,12 @@ class _CityWeatherState extends State<CityWeather> {
                               decoration: ShapeDecoration(
                                 color: Colors.white.withOpacity(0.5),
                                 shape: RoundedRectangleBorder(
-                                    borderRadius: BorderRadius.circular(15),
-                                    side: const BorderSide(
-                                        width: 2.5, color: Colors.white)),
+                                  borderRadius: BorderRadius.circular(15),
+                                  side: const BorderSide(
+                                    width: 2.5, color: Colors.white)),
                               ),
                               child: Row(
-                                mainAxisAlignment:
-                                    MainAxisAlignment.spaceAround,
+                                mainAxisAlignment: MainAxisAlignment.spaceAround,
                                 children: [
                                   const Text(
                                     "Cloudiness",
@@ -871,9 +842,9 @@ class _CityWeatherState extends State<CityWeather> {
                                   Text(
                                     "${_weather?.cloudiness}%",
                                     style: TextStyle(
-                                        fontSize: 15,
-                                        color: Colors.blue,
-                                        fontWeight: FontWeight.bold),
+                                      fontSize: 15,
+                                      color: Colors.blue,
+                                      fontWeight: FontWeight.bold),
                                   ),
                                 ],
                               ),
@@ -886,13 +857,12 @@ class _CityWeatherState extends State<CityWeather> {
                               decoration: ShapeDecoration(
                                 color: Colors.white.withOpacity(0.5),
                                 shape: RoundedRectangleBorder(
-                                    borderRadius: BorderRadius.circular(15),
-                                    side: const BorderSide(
-                                        width: 2.5, color: Colors.white)),
+                                  borderRadius: BorderRadius.circular(15),
+                                  side: const BorderSide(
+                                    width: 2.5, color: Colors.white)),
                               ),
                               child: Row(
-                                mainAxisAlignment:
-                                    MainAxisAlignment.spaceAround,
+                                mainAxisAlignment: MainAxisAlignment.spaceAround,
                                 children: [
                                   const Text(
                                     "Visibility",
@@ -904,15 +874,14 @@ class _CityWeatherState extends State<CityWeather> {
                                     width: 35,
                                   ),
                                   _weather != null
-                                      ? Text(
-                                          "${(_weather!.visibility / 1000).round()} km",
-                                          style: TextStyle(
-                                              fontSize: 15,
-                                              color: Colors.blue,
-                                              fontWeight: FontWeight.bold),
-                                        )
-                                      : Center(
-                                          child: CircularProgressIndicator()),
+                                    ? Text(
+                                      "${(_weather!.visibility / 1000).round()} km",
+                                      style: TextStyle(
+                                        fontSize: 15,
+                                        color: Colors.blue,
+                                        fontWeight: FontWeight.bold),
+                                    )
+                                    : Center(child: CircularProgressIndicator()),
                                 ],
                               ),
                             ),
@@ -932,13 +901,12 @@ class _CityWeatherState extends State<CityWeather> {
                               decoration: ShapeDecoration(
                                 color: Colors.white.withOpacity(0.5),
                                 shape: RoundedRectangleBorder(
-                                    borderRadius: BorderRadius.circular(15),
-                                    side: const BorderSide(
-                                        width: 2.5, color: Colors.white)),
+                                  borderRadius: BorderRadius.circular(15),
+                                  side: const BorderSide(
+                                    width: 2.5, color: Colors.white)),
                               ),
                               child: Row(
-                                mainAxisAlignment:
-                                    MainAxisAlignment.spaceAround,
+                                mainAxisAlignment: MainAxisAlignment.spaceAround,
                                 children: [
                                   const Text(
                                     "Air Quality Index",
@@ -952,9 +920,9 @@ class _CityWeatherState extends State<CityWeather> {
                                   Text(
                                     "${aqiData?.aqi}",
                                     style: TextStyle(
-                                        fontSize: 15,
-                                        color: Colors.blue,
-                                        fontWeight: FontWeight.bold),
+                                      fontSize: 15,
+                                      color: Colors.blue,
+                                      fontWeight: FontWeight.bold),
                                   ),
                                   Row(
                                     children: [
@@ -968,13 +936,11 @@ class _CityWeatherState extends State<CityWeather> {
                                         ),
                                         onPressed: () {
                                           Navigator.push(
-                                              context,
-                                              MaterialPageRoute(
-                                                  builder: (context) =>
-                                                      AirQualityIndex(
-                                                        aqiData: aqiData,
-                                                        forecasts: airForecasts,
-                                                      )));
+                                            context, MaterialPageRoute(
+                                              builder: (context) => AirQualityIndex(
+                                                aqiData: aqiData,
+                                                forecasts: airForecasts,
+                                            )));
                                         },
                                       ),
                                       const SizedBox(width: 3),
@@ -994,8 +960,7 @@ class _CityWeatherState extends State<CityWeather> {
                       SizedBox(height: isLandscape ? height * 0.05 : 25),
                     ],
                   )
-                : Container(
-                    height: height, child: Center(child: LoadingScreen())),
+              : Container(height: height, child: Center(child: LoadingScreen())),
           ],
         )),
       ),

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:geolocator/geolocator.dart';
+import 'package:geocoding/geocoding.dart';
 import 'package:latlong2/latlong.dart';
 import 'package:weather_app/main.dart';
 import 'package:weather_app/models/airQualityModel.dart';
@@ -9,6 +10,16 @@ import 'package:weather_app/providers/weatherService.dart';
 import 'package:weather_app/screens/splash.dart';
 
 class WeatherMap extends StatefulWidget {
+  final String city;
+  final double? latitude;
+  final double? longitude;
+  const WeatherMap({
+    super.key,
+    required this.city,
+    this.latitude,
+    this.longitude,
+  });
+
   @override
   _WeatherMapState createState() => _WeatherMapState();
 }
@@ -28,39 +39,26 @@ class _WeatherMapState extends State<WeatherMap> {
   bool _showPrecipitation = false;
   bool _showPressure = false;
 
-  Future<Position> _getCurrentPosition() async {
-    bool serviceEnabled;
-    LocationPermission permission;
-
-    serviceEnabled = await Geolocator.isLocationServiceEnabled();
-    if (!serviceEnabled) {
-      throw Exception('Location services are disabled.');
-    }
-
-    permission = await Geolocator.checkPermission();
-    if (permission == LocationPermission.denied) {
-      permission = await Geolocator.requestPermission();
-      if (permission == LocationPermission.denied) {
-        throw Exception('Location permissions are denied');
-      }
-    }
-
-    if (permission == LocationPermission.deniedForever) {
-      throw Exception('Location permissions are permanently denied');
-    }
-
-    return await Geolocator.getCurrentPosition(
-      desiredAccuracy: LocationAccuracy.high,
-    );
-  }
-
   fetchWeather() async {
-    String cityName = await _WeatherService.getCurrentCity();
     try {
-      final weather = await _WeatherService.getWeather(cityName);
-      final position = await _getCurrentPosition();
-      double lat = position.latitude;
-      double lon = position.longitude;
+      final weather = await _WeatherService.getWeather(widget.city);
+
+      double lat;
+      double lon;
+
+      // If GPS coordinates are provided, use them for the map center
+      // Otherwise, geocode from the city name
+      if (widget.latitude != null && widget.longitude != null) {
+        lat = widget.latitude!;
+        lon = widget.longitude!;
+        print(
+            'Using GPS location - City: ${widget.city}, Lat: $lat, Lon: $lon');
+      } else {
+        List<Location> locations = await locationFromAddress(widget.city);
+        lat = locations[0].latitude;
+        lon = locations[0].longitude;
+        print('City: ${widget.city}, Lat: $lat, Lon: $lon');
+      }
 
       final results = await Future.wait([
         _WeatherService.fetchAirQuality(lat, lon),
@@ -78,7 +76,7 @@ class _WeatherMapState extends State<WeatherMap> {
         } catch (_) {}
       });
     } catch (e) {
-      print(e);
+      print('Error in fetchWeather: $e');
     }
   }
 
@@ -129,61 +127,61 @@ class _WeatherMapState extends State<WeatherMap> {
         width: width,
         height: height,
         decoration: const BoxDecoration(
-          image: DecorationImage(
-            image: AssetImage('assets/background.png'),
-            fit: BoxFit.cover,
+            image: DecorationImage(
+          image: AssetImage('assets/background.png'),
+          fit: BoxFit.cover,
         )),
         child: Stack(
           children: [
-            _mapCenter == null ? Container(
-              height: 1000, child: Center(child: LoadingScreen())) :
-            FlutterMap(
-              mapController: _mapController,
-              options: MapOptions(
-                initialCenter: _mapCenter!,
-                initialZoom: 16.0,
-              ),
-              children: [
-                TileLayer(
-                  urlTemplate:
-                      'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',
-                  subdomains: ['a', 'b', 'c'],
-                ),
-                if (_showClouds)
-                  TileLayer(
-                    urlTemplate:
-                        'https://tile.openweathermap.org/map/clouds_new/{z}/{x}/{y}.png?appid=$apiKey',
+            _mapCenter == null
+                ? Container(height: 1000, child: Center(child: LoadingScreen()))
+                : FlutterMap(
+                    mapController: _mapController,
+                    options: MapOptions(
+                      initialCenter: _mapCenter!,
+                      initialZoom: 16.0,
+                    ),
+                    children: [
+                      TileLayer(
+                        urlTemplate:
+                            'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',
+                        subdomains: ['a', 'b', 'c'],
+                      ),
+                      if (_showClouds)
+                        TileLayer(
+                          urlTemplate:
+                              'https://tile.openweathermap.org/map/clouds_new/{z}/{x}/{y}.png?appid=$apiKey',
+                        ),
+                      if (_showWinds)
+                        TileLayer(
+                          urlTemplate:
+                              'https://tile.openweathermap.org/map/wind_new/{z}/{x}/{y}.png?appid=$apiKey',
+                        ),
+                      if (_showTemp)
+                        TileLayer(
+                          urlTemplate:
+                              'https://tile.openweathermap.org/map/temp_new/{z}/{x}/{y}.png?appid=$apiKey',
+                        ),
+                      if (_showPrecipitation)
+                        TileLayer(
+                          urlTemplate:
+                              'https://tile.openweathermap.org/map/precipitation_new/{z}/{x}/{y}.png?appid=$apiKey',
+                        ),
+                      if (_showPressure)
+                        TileLayer(
+                          urlTemplate:
+                              'https://tile.openweathermap.org/map/pressure_new/{z}/{x}/{y}.png?appid=$apiKey',
+                        ),
+                      MarkerLayer(markers: [
+                        Marker(
+                            point: _mapCenter!,
+                            child: Icon(
+                              Icons.location_on,
+                              color: Colors.red,
+                            )),
+                      ]),
+                    ],
                   ),
-                if (_showWinds)
-                  TileLayer(
-                    urlTemplate:
-                        'https://tile.openweathermap.org/map/wind_new/{z}/{x}/{y}.png?appid=$apiKey',
-                  ),
-                if (_showTemp)
-                  TileLayer(
-                    urlTemplate:
-                        'https://tile.openweathermap.org/map/temp_new/{z}/{x}/{y}.png?appid=$apiKey',
-                  ),
-                if (_showPrecipitation)
-                  TileLayer(
-                    urlTemplate:
-                        'https://tile.openweathermap.org/map/precipitation_new/{z}/{x}/{y}.png?appid=$apiKey',
-                  ),
-                if (_showPressure)
-                  TileLayer(
-                    urlTemplate:
-                        'https://tile.openweathermap.org/map/pressure_new/{z}/{x}/{y}.png?appid=$apiKey',
-                  ),
-                MarkerLayer(markers: [
-                  Marker(
-                      point: _mapCenter!,
-                      child: Icon(
-                        Icons.location_on,
-                        color: Colors.red,
-                      )),
-                ]),
-              ],
-            ),
             if (_showAirQuality)
               Container(
                 color: Colors.green.withOpacity(0.5),
@@ -194,7 +192,7 @@ class _WeatherMapState extends State<WeatherMap> {
               bottom: 0,
               child: Container(
                 padding: const EdgeInsets.only(
-                  top: 10, bottom: 20, left: 10, right: 10),
+                    top: 10, bottom: 20, left: 10, right: 10),
                 width: width,
                 decoration: BoxDecoration(
                     borderRadius: BorderRadius.only(
@@ -240,7 +238,8 @@ class _WeatherMapState extends State<WeatherMap> {
                             SizedBox(width: width * 0.01),
                             WeatherButton(
                               label: "Air Quality",
-                              value: '${airQualityForecastDescription(aqiData?.aqi)}',
+                              value:
+                                  '${airQualityForecastDescription(aqiData?.aqi)}',
                               icon: "assets/wind.png",
                               iconWidth: 35,
                               heroTag: 'airTag',
@@ -254,7 +253,9 @@ class _WeatherMapState extends State<WeatherMap> {
                             SizedBox(width: width * 0.01),
                             WeatherButton(
                               label: "Winds",
-                              value: _weather != null ? '${(_weather!.windSpeed * 3.6).round()} km/h' : '--',
+                              value: _weather != null
+                                  ? '${(_weather!.windSpeed * 3.6).round()} km/h'
+                                  : '--',
                               icon: "assets/wind.png",
                               iconWidth: 35,
                               heroTag: 'windsTag',
@@ -269,7 +270,7 @@ class _WeatherMapState extends State<WeatherMap> {
                             WeatherButton(
                               label: "Precipitation",
                               value: _weather?.precipitation == 0.0 ||
-                                _weather?.precipitation == null
+                                      _weather?.precipitation == null
                                   ? "No rain"
                                   : "${(_weather?.precipitation)?.round()} mm",
                               icon: "assets/water.png",
@@ -323,7 +324,8 @@ class _WeatherMapState extends State<WeatherMap> {
                               SizedBox(width: 8),
                               WeatherButton(
                                 label: "Temperature",
-                                value: '${_weather?.temperature.round() ?? 0}°C',
+                                value:
+                                    '${_weather?.temperature.round() ?? 0}°C',
                                 icon: "assets/min.png",
                                 iconWidth: 15,
                                 heroTag: 'tempTag',
@@ -337,7 +339,8 @@ class _WeatherMapState extends State<WeatherMap> {
                               SizedBox(width: 8),
                               WeatherButton(
                                 label: "Air Quality",
-                                value: '${airQualityForecastDescription(aqiData?.aqi)}',
+                                value:
+                                    '${airQualityForecastDescription(aqiData?.aqi)}',
                                 icon: "assets/wind.png",
                                 iconWidth: 35,
                                 heroTag: 'airTag',
@@ -356,7 +359,9 @@ class _WeatherMapState extends State<WeatherMap> {
                             children: [
                               WeatherButton(
                                 label: "Winds",
-                                value: _weather != null ? '${(_weather!.windSpeed * 3.6).round()} km/h' : '--',
+                                value: _weather != null
+                                    ? '${(_weather!.windSpeed * 3.6).round()} km/h'
+                                    : '--',
                                 icon: "assets/wind.png",
                                 iconWidth: 35,
                                 heroTag: 'windsTag',
@@ -371,7 +376,7 @@ class _WeatherMapState extends State<WeatherMap> {
                               WeatherButton(
                                 label: "Precipitation",
                                 value: _weather?.precipitation == 0.0 ||
-                                  _weather?.precipitation == null
+                                        _weather?.precipitation == null
                                     ? "No rain"
                                     : "${(_weather?.precipitation)?.round()} mm",
                                 icon: "assets/water.png",
@@ -441,30 +446,33 @@ class _WeatherButtonState extends State<WeatherButton> {
 
     return FloatingActionButton.extended(
       elevation: 0,
-      extendedIconLabelSpacing: isLandscape ? 10.0
-        : widget.heroTag == 'rainTag' ? 0.0 : 5.0,
+      extendedIconLabelSpacing: isLandscape
+          ? 10.0
+          : widget.heroTag == 'rainTag'
+              ? 0.0
+              : 5.0,
       extendedPadding: EdgeInsets.symmetric(horizontal: 10),
       heroTag: "${widget.heroTag}",
       label: widget.condtion
-        ? Text(
-          widget.value,
-          style: TextStyle(color: Colors.white),
-        )
-        : Text(
-          widget.label,
-          style: TextStyle(color: Colors.black),
-        ),
+          ? Text(
+              widget.value,
+              style: TextStyle(color: Colors.white),
+            )
+          : Text(
+              widget.label,
+              style: TextStyle(color: Colors.black),
+            ),
       icon: Image.asset(
         widget.icon,
         fit: BoxFit.contain,
         width: widget.iconWidth,
       ),
       shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(15),
-        side: const BorderSide(width: 2.5, color: Colors.white)),
+          borderRadius: BorderRadius.circular(15),
+          side: const BorderSide(width: 2.5, color: Colors.white)),
       backgroundColor: widget.condtion
-        ? Colors.blue.withOpacity(0.5)
-        : Colors.white.withOpacity(0.5),
+          ? Colors.blue.withOpacity(0.5)
+          : Colors.white.withOpacity(0.5),
       onPressed: () {
         widget.onPressed();
       },

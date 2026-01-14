@@ -52,22 +52,25 @@ class _LocationsState extends State<Locations> {
     }
 
     List<String> suggestions = [
-      'Colombo',
-      'Kandy',
-      'New York',
-      'Africa',
-      'Sydney',
-      'Egypt',
-      'London',
-      'Brazil',
-      'Tokyo',
-      'France',
+      'Colombo', 'Jaffna', 'Galle', 'Kandy',
+      'Gampaha', 'Kalutara', 'Matara', 'Badulla',
+      'Ratnapura', 'Kegalle', 'Nuwara Eliya', 'Polonnarauwa',
+      'Trincomalee', 'Batticaloa', 'Mannar', 'Puttalam',
+      'Kurunegala', 'Vavuniya', 'Kilinochchi', 'Matale',
+      'Hambantota', 'Ampara', 'Monaragala', 'Anuradhapura',
+      'Mullaittivu', 'New York', 'Chicago', 'Los Angeles',
+      'Dubai', 'Hong Kong', 'Shanghai', 'Melbourne',
+      'Sydney', 'Moscow', 'Kuala Lumpur', 'Singapore',
+      'Rio de Janeiro', 'Istanbul', 'Bangkok', 'Madrid',
+      'Cairo', 'Chennai', 'Delhi', 'Mumbai',
+      'London', 'Berlin', 'Paris', 'Rome',      
+      'Tokyo', 'Seoul', 'Beijing', 'Jakarta',
     ];
 
     setState(() {
       _suggestions = suggestions
-          .where((city) => city.toLowerCase().contains(query.toLowerCase()))
-          .toList();
+        .where((city) => city.toLowerCase().contains(query.toLowerCase()))
+        .toList();
     });
   }
 
@@ -108,17 +111,17 @@ class _LocationsState extends State<Locations> {
         ),
         actions: [
           IconButton(
-              onPressed: () {},
-              icon: const Icon(Icons.add_location_alt_outlined))
+            onPressed: () {},
+            icon: const Icon(Icons.add_location_alt_outlined))
         ],
       ),
       body: Container(
         width: MediaQuery.of(context).size.width,
         height: MediaQuery.of(context).size.height,
         decoration: const BoxDecoration(
-            image: DecorationImage(
-          image: AssetImage('assets/background.png'),
-          fit: BoxFit.cover,
+          image: DecorationImage(
+            image: AssetImage('assets/background.png'),
+            fit: BoxFit.cover,
         )),
         child: SingleChildScrollView(
           child: Padding(
@@ -131,8 +134,8 @@ class _LocationsState extends State<Locations> {
                     decoration: ShapeDecoration(
                       shape: const RoundedRectangleBorder(
                         borderRadius: BorderRadius.only(
-                            bottomLeft: Radius.circular(20),
-                            bottomRight: Radius.circular(20)),
+                          bottomLeft: Radius.circular(20),
+                          bottomRight: Radius.circular(20)),
                       ),
                       image: DecorationImage(
                         image: AssetImage('assets/background.png'),
@@ -148,7 +151,7 @@ class _LocationsState extends State<Locations> {
                     ),
                     child: Padding(
                       padding: const EdgeInsets.only(
-                          left: 20, right: 20, top: 25, bottom: 30),
+                        left: 20, right: 20, top: 25, bottom: 30),
                       child: TextFormField(
                         controller: _cityController,
                         decoration: InputDecoration(
@@ -217,30 +220,29 @@ class _LocationsState extends State<Locations> {
                         final weather = _addedCitiesWeather[index];
                         return GestureDetector(
                           child: Padding(
-                              padding: const EdgeInsets.symmetric(
-                                  horizontal: 15, vertical: 10),
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 15, vertical: 10),
                               child: Container(
                                 decoration: ShapeDecoration(
                                   shape: RoundedRectangleBorder(
-                                      borderRadius: BorderRadius.circular(15),
-                                      side: const BorderSide(
-                                          width: 2.5, color: Colors.white)),
+                                    borderRadius: BorderRadius.circular(15),
+                                    side: const BorderSide(
+                                      width: 2.5, color: Colors.white)),
                                   color: Colors.white.withOpacity(0.50),
                                 ),
                                 child: Padding(
                                   padding: const EdgeInsets.symmetric(
-                                      horizontal: 15, vertical: 15),
+                                    horizontal: 15, vertical: 15),
                                   child: Center(
                                     child: Row(
-                                      mainAxisAlignment:
-                                          MainAxisAlignment.spaceBetween,
+                                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
                                       children: [
                                         Text(
                                           weather.cityName,
                                           textAlign: TextAlign.center,
                                           style: const TextStyle(
-                                              fontSize: 20,
-                                              color: Colors.black),
+                                            fontSize: 20,
+                                            color: Colors.black),
                                         ),
                                         SizedBox(
                                           width: 20,
@@ -267,7 +269,8 @@ class _LocationsState extends State<Locations> {
                                           weather.mainCondition,
                                           textAlign: TextAlign.center,
                                           style: const TextStyle(
-                                              fontSize: 17, color: Colors.blue),
+                                            fontSize: 17, 
+                                            color: Colors.blue),
                                         ),
                                         SizedBox(
                                           width: 10,
@@ -286,11 +289,10 @@ class _LocationsState extends State<Locations> {
                               )),
                           onTap: () {
                             Navigator.push(
-                                context,
-                                MaterialPageRoute(
-                                    builder: (context) => CityWeather(
-                                          weather: weather,
-                                        )));
+                              context, MaterialPageRoute(
+                                builder: (context) => CityWeather(
+                                  weather: weather,
+                              )));
                           },
                         );
                       },

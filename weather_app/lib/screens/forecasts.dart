@@ -134,9 +134,12 @@ class _ForecastsState extends State<Forecasts> {
                                         ),
                                       ],
                                     ),
-                                    child: Padding(
-                                      padding: const EdgeInsets.symmetric(
-                                        horizontal: 20, vertical: 25),
+                                      child: Padding(
+                                      padding: EdgeInsets.symmetric(
+                                        horizontal: 20,
+                                        vertical: (
+                                          forecast.mainCondition?.toLowerCase().contains('drizzle') ?? false) ? 0 
+                                            : ((forecast.mainCondition?.toLowerCase().contains('rain') ?? false) ? 15 : 25)),
                                       child: Column(
                                         children: [
                                           Expanded(
@@ -210,7 +213,7 @@ class _ForecastsState extends State<Forecasts> {
                                                 ),
                                                 const Spacer(),
                                                 Column(
-                                                  children: [
+                                                  children: [                                                    
                                                     Image.asset(
                                                       getWeatherAnimation(forecast.mainCondition),
                                                       width: 170),
