@@ -170,8 +170,8 @@ class _AirQualityIndexState extends State<AirQualityIndex> {
                                               "Air Quality Index",
                                               textAlign: TextAlign.center,
                                               style: TextStyle(
-                                                  fontSize: 16,
-                                                  color: Colors.black),
+                                                fontSize: 16,
+                                                color: Colors.black),
                                             ),
                                             const Spacer(),
                                             Text(
@@ -213,7 +213,7 @@ class _AirQualityIndexState extends State<AirQualityIndex> {
                                           children: [
                                             const Spacer(),
                                             Image.asset('assets/wind.png',
-                                                width: 120),
+                                              width: 120),
                                             const Spacer(),
                                           ],
                                         ),
@@ -343,8 +343,7 @@ class _AirQualityIndexState extends State<AirQualityIndex> {
                       isLoading
                         ? Center(child: CircularProgressIndicator())
                         : Container(
-                          padding: const EdgeInsets.symmetric(
-                              horizontal: 0, vertical: 10),
+                          padding: const EdgeInsets.symmetric(vertical: 10),
                           height: isLandscape ? 170 : 130,
                           child: ListView.builder(
                             padding: EdgeInsets.symmetric(horizontal: 12),
@@ -357,7 +356,7 @@ class _AirQualityIndexState extends State<AirQualityIndex> {
                               return Padding(
                                 padding:  const EdgeInsets.symmetric(horizontal: 5),
                                 child: Container(
-                                  width: isLandscape ? 145 : 79,
+                                  width: isLandscape ? height * 0.36 : 79,
                                   height: 260,
                                   decoration: ShapeDecoration(
                                     color: Colors.white.withOpacity(0.5),
@@ -370,8 +369,7 @@ class _AirQualityIndexState extends State<AirQualityIndex> {
                                     mainAxisAlignment: MainAxisAlignment.center,
                                     crossAxisAlignment: CrossAxisAlignment.center,
                                     children: <Widget>[
-                                      SizedBox(
-                                        height: isLandscape ? height * 0.05 : 5),
+                                      SizedBox(height: isLandscape ? height * 0.05 : 5),
                                       Text(
                                         DateFormat('EEE').format(forecast!.date),
                                         style: const TextStyle(
@@ -386,12 +384,16 @@ class _AirQualityIndexState extends State<AirQualityIndex> {
                                           fontWeight: FontWeight.bold),
                                       ),
                                       SizedBox(height: isLandscape ? height * 0.05 : 5),
-                                      Text(
-                                        "${airQualityForecast}",
-                                        style: const TextStyle(
-                                            fontSize: 16,
+                                      Expanded(
+                                        child: Text(
+                                          "${airQualityForecast}",
+                                          overflow: TextOverflow.ellipsis,
+                                          maxLines: 1,
+                                          style: const TextStyle(
+                                            fontSize: 15,
                                             color: Colors.blue,
                                             fontWeight: FontWeight.bold),
+                                        ),
                                       ),
                                       SizedBox(height: isLandscape ? height * 0.05 : 5),
                                     ],

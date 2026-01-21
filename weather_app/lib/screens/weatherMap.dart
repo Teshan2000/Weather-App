@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_map/flutter_map.dart';
-import 'package:geolocator/geolocator.dart';
 import 'package:geocoding/geocoding.dart';
 import 'package:latlong2/latlong.dart';
 import 'package:weather_app/main.dart';
@@ -42,12 +41,9 @@ class _WeatherMapState extends State<WeatherMap> {
   fetchWeather() async {
     try {
       final weather = await _WeatherService.getWeather(widget.city);
-
       double lat;
       double lon;
 
-      // If GPS coordinates are provided, use them for the map center
-      // Otherwise, geocode from the city name
       if (widget.latitude != null && widget.longitude != null) {
         lat = widget.latitude!;
         lon = widget.longitude!;
@@ -98,6 +94,18 @@ class _WeatherMapState extends State<WeatherMap> {
         return "Unavailable";
     }
   }
+
+  Color getAqiColor(int aqi) {
+    switch (aqi) {
+      case 1: return Colors.green.withOpacity(0.5);
+      case 2: return Colors.yellow.withOpacity(0.5);
+      case 3: return Colors.orange.withOpacity(0.5);
+      case 4: return Colors.red.withOpacity(0.5);
+      case 5: return Colors.purple.withOpacity(0.5);
+      default: return Colors.grey.withOpacity(0.5);
+    }
+  }
+
 
   @override
   void initState() {
@@ -184,7 +192,7 @@ class _WeatherMapState extends State<WeatherMap> {
                   ),
             if (_showAirQuality)
               Container(
-                color: Colors.green.withOpacity(0.5),
+                color: getAqiColor(aqiData!.aqi),
                 width: width,
                 height: height,
               ),
@@ -192,12 +200,12 @@ class _WeatherMapState extends State<WeatherMap> {
               bottom: 0,
               child: Container(
                 padding: const EdgeInsets.only(
-                    top: 10, bottom: 20, left: 10, right: 10),
+                  top: 10, bottom: 20, left: 10, right: 10),
                 width: width,
                 decoration: BoxDecoration(
                     borderRadius: BorderRadius.only(
-                        topLeft: Radius.circular(15),
-                        topRight: Radius.circular(15)),
+                      topLeft: Radius.circular(15),
+                      topRight: Radius.circular(15)),
                     image: DecorationImage(
                       image: AssetImage('assets/background.png'),
                       fit: BoxFit.cover,
@@ -238,8 +246,7 @@ class _WeatherMapState extends State<WeatherMap> {
                             SizedBox(width: width * 0.01),
                             WeatherButton(
                               label: "Air Quality",
-                              value:
-                                  '${airQualityForecastDescription(aqiData?.aqi)}',
+                              value: '${airQualityForecastDescription(aqiData?.aqi)}',
                               icon: "assets/wind.png",
                               iconWidth: 35,
                               heroTag: 'airTag',
@@ -254,8 +261,8 @@ class _WeatherMapState extends State<WeatherMap> {
                             WeatherButton(
                               label: "Winds",
                               value: _weather != null
-                                  ? '${(_weather!.windSpeed * 3.6).round()} km/h'
-                                  : '--',
+                                ? '${(_weather!.windSpeed * 3.6).round()} km/h'
+                                : '--',
                               icon: "assets/wind.png",
                               iconWidth: 35,
                               heroTag: 'windsTag',
@@ -270,7 +277,7 @@ class _WeatherMapState extends State<WeatherMap> {
                             WeatherButton(
                               label: "Precipitation",
                               value: _weather?.precipitation == 0.0 ||
-                                      _weather?.precipitation == null
+                                _weather?.precipitation == null
                                   ? "No rain"
                                   : "${(_weather?.precipitation)?.round()} mm",
                               icon: "assets/water.png",
@@ -324,8 +331,7 @@ class _WeatherMapState extends State<WeatherMap> {
                               SizedBox(width: 8),
                               WeatherButton(
                                 label: "Temperature",
-                                value:
-                                    '${_weather?.temperature.round() ?? 0}°C',
+                                value: '${_weather?.temperature.round() ?? 0}°C',
                                 icon: "assets/min.png",
                                 iconWidth: 15,
                                 heroTag: 'tempTag',
@@ -339,8 +345,7 @@ class _WeatherMapState extends State<WeatherMap> {
                               SizedBox(width: 8),
                               WeatherButton(
                                 label: "Air Quality",
-                                value:
-                                    '${airQualityForecastDescription(aqiData?.aqi)}',
+                                value: '${airQualityForecastDescription(aqiData?.aqi)}',
                                 icon: "assets/wind.png",
                                 iconWidth: 35,
                                 heroTag: 'airTag',
@@ -360,8 +365,8 @@ class _WeatherMapState extends State<WeatherMap> {
                               WeatherButton(
                                 label: "Winds",
                                 value: _weather != null
-                                    ? '${(_weather!.windSpeed * 3.6).round()} km/h'
-                                    : '--',
+                                  ? '${(_weather!.windSpeed * 3.6).round()} km/h'
+                                  : '--',
                                 icon: "assets/wind.png",
                                 iconWidth: 35,
                                 heroTag: 'windsTag',
@@ -376,7 +381,7 @@ class _WeatherMapState extends State<WeatherMap> {
                               WeatherButton(
                                 label: "Precipitation",
                                 value: _weather?.precipitation == 0.0 ||
-                                        _weather?.precipitation == null
+                                  _weather?.precipitation == null
                                     ? "No rain"
                                     : "${(_weather?.precipitation)?.round()} mm",
                                 icon: "assets/water.png",
@@ -446,33 +451,31 @@ class _WeatherButtonState extends State<WeatherButton> {
 
     return FloatingActionButton.extended(
       elevation: 0,
-      extendedIconLabelSpacing: isLandscape
-          ? 10.0
-          : widget.heroTag == 'rainTag'
-              ? 0.0
-              : 5.0,
+      extendedIconLabelSpacing: isLandscape && 
+        widget.heroTag == 'rainTag' ? 0.0 : !isLandscape
+          ? 5.0 : 7.0,
       extendedPadding: EdgeInsets.symmetric(horizontal: 10),
       heroTag: "${widget.heroTag}",
       label: widget.condtion
-          ? Text(
-              widget.value,
-              style: TextStyle(color: Colors.white),
-            )
-          : Text(
-              widget.label,
-              style: TextStyle(color: Colors.black),
-            ),
+        ? Text(
+            widget.value,
+            style: TextStyle(color: Colors.white),
+        )
+        : Text(
+            widget.label,
+            style: TextStyle(color: Colors.black),
+        ),
       icon: Image.asset(
         widget.icon,
         fit: BoxFit.contain,
         width: widget.iconWidth,
       ),
       shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(15),
-          side: const BorderSide(width: 2.5, color: Colors.white)),
+        borderRadius: BorderRadius.circular(15),
+        side: const BorderSide(width: 2.5, color: Colors.white)),
       backgroundColor: widget.condtion
-          ? Colors.blue.withOpacity(0.5)
-          : Colors.white.withOpacity(0.5),
+        ? Colors.blue.withOpacity(0.5)
+        : Colors.white.withOpacity(0.5),
       onPressed: () {
         widget.onPressed();
       },

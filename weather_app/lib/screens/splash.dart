@@ -1,5 +1,5 @@
 import 'dart:async';
-import 'package:internet_connection_checker_plus/internet_connection_checker_plus.dart';
+import 'package:flutter/services.dart';
 import 'package:lottie/lottie.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';
@@ -14,66 +14,18 @@ class SplashScreen extends StatefulWidget {
 }
 
 class SplashScreenState extends State<SplashScreen> {
-  bool isConnected = false;
-  StreamSubscription? _internetConnectionStreamSubscription;
 
   @override
   void initState() {
     super.initState();
-    _checkConnection();
-  }
-
-  @override
-  void dispose() {
-    _internetConnectionStreamSubscription?.cancel();
-    super.dispose();
-  }
-
-  void _checkConnection() async {
-    _internetConnectionStreamSubscription =
-        InternetConnection().onStatusChange.listen((event) {
-      print(event);
-      switch (event) {
-        case InternetStatus.connected:
-          setState(() {
-            isConnected = true;
-            startSplashTimer();
-          });
-          break;
-        case InternetStatus.disconnected:
-          setState(() {
-            isConnected = false;
-            _showNoConnectionDialog();
-          });
-          break;
-        default:
-          setState(() {
-            isConnected = false;
-          });
-          break;
-      }
-    });
-  }
-
-  void _showNoConnectionDialog() {
-    showDialog(
-      context: context,
-      builder: (BuildContext context) {
-        return AlertDialog(
-          title: const Text("No Internet Connection"),
-          content: const Text(
-              "Please check your internet connection and try again."),
-          actions: [
-            TextButton(
-              onPressed: () {
-                Navigator.of(context).pop();
-              },
-              child: const Text("Retry"),
-            ),
-          ],
-        );
-      },
-    );
+    SystemChrome.setSystemUIOverlayStyle(
+    const SystemUiOverlayStyle(
+      statusBarColor: Colors.transparent,
+      statusBarIconBrightness: Brightness.dark,
+      statusBarBrightness: Brightness.light,
+    ),
+  );
+    startSplashTimer();
   }
 
   void startSplashTimer() {
