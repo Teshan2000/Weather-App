@@ -62,8 +62,20 @@ class _CityWeatherState extends State<CityWeather> {
     }
   }
 
-  String getWeatherAnimation(String? mainCondition) {
+  String getWeatherAnimation(String? mainCondition, {int? sunrise, int? sunset}) {
     if (mainCondition == null) return 'assets/clear.png';
+
+    if (mainCondition.toLowerCase() == 'clear') {
+      if (sunrise != null && sunset != null) {
+        final now = DateTime.now().toUtc().millisecondsSinceEpoch ~/ 1000;
+        if (now >= sunrise && now < sunset) {
+          return 'assets/clear.png';
+        } else {
+          return 'assets/night clear.png';
+        }
+      }
+      return 'assets/clear.png';
+    }
 
     switch (mainCondition.toLowerCase()) {
       case 'clouds':
@@ -82,8 +94,8 @@ class _CityWeatherState extends State<CityWeather> {
         return 'assets/shower.png';
       case 'thunderstorm':
         return 'assets/thunder rain.png';
-      case 'clear':
-        return 'assets/clear.png';
+      case 'snow':
+        return 'assets/snow.png';
       default:
         return 'assets/clear.png';
     }
@@ -130,6 +142,8 @@ class _CityWeatherState extends State<CityWeather> {
     var formatterTime = DateFormat('kk:mm');
     String actualDate = formatterDate.format(cityNow);
     String actualTime = formatterTime.format(cityNow);
+    var dayOrNight = (_weather != null && (nowUtc.millisecondsSinceEpoch ~/ 1000 >= _weather!.sunrise 
+      && nowUtc.millisecondsSinceEpoch ~/ 1000 < _weather!.sunset)) ? 'day' : 'night';
 
     return Scaffold(
       body: Container(
@@ -147,7 +161,20 @@ class _CityWeatherState extends State<CityWeather> {
                 ? Column(
                     children: [
                       Container(
-                        height: isLandscape ? height * 1.15 : height * 1.05,
+                        height: isLandscape ? 
+                        (widget.weather.mainCondition.toLowerCase() == 'rain' 
+                          || widget.weather.mainCondition.toLowerCase() == 'thunderstorm'
+                          ? 920 : widget.weather.mainCondition.toLowerCase() == 'drizzle' 
+                          ? 980 : widget.weather.mainCondition.toLowerCase() == 'clouds' 
+                          ? 880 : widget.weather.mainCondition.toLowerCase() == 'clear' 
+                          && dayOrNight == 'night' ? 950 : 910) 
+                          
+                          : widget.weather.mainCondition.toLowerCase() == 'rain' 
+                          || widget.weather.mainCondition.toLowerCase() == 'thunderstorm'
+                          ? 790 : widget.weather.mainCondition.toLowerCase() == 'drizzle' 
+                          ? 850 : widget.weather.mainCondition.toLowerCase() == 'clouds' 
+                          ? 750 : widget.weather.mainCondition.toLowerCase() == 'clear' 
+                          && dayOrNight == 'night' ? 820 : 780,
                         width: double.infinity,
                         decoration: ShapeDecoration(
                           shape: const RoundedRectangleBorder(
@@ -222,6 +249,8 @@ class _CityWeatherState extends State<CityWeather> {
                             Image.asset(
                               getWeatherAnimation(
                                 _weather?.mainCondition,
+                                sunrise: _weather?.sunrise,
+                                sunset: _weather?.sunset,
                               ),
                               width: isLandscape ? width * 0.3 : 200),
                             SizedBox(height: isLandscape ? height * 0.05 : 12),
@@ -317,9 +346,9 @@ class _CityWeatherState extends State<CityWeather> {
                                             Text(
                                               "${_weather?.pressure} mb",
                                               style: TextStyle(
-                                                  fontSize: 15,
-                                                  color: Colors.blue,
-                                                  fontWeight: FontWeight.bold),
+                                                fontSize: 15,
+                                                color: Colors.blue,
+                                                fontWeight: FontWeight.bold),
                                             ),
                                           ],
                                         ),
@@ -388,7 +417,8 @@ class _CityWeatherState extends State<CityWeather> {
                                           context,
                                           MaterialPageRoute(
                                             builder: (context) => Forecasts(
-                                                forecasts: _forecasts),
+                                              forecasts: _forecasts,
+                                              time: dayOrNight,),
                                           ),
                                         );
                                       },
@@ -436,7 +466,10 @@ class _CityWeatherState extends State<CityWeather> {
                                           ),
                                           const SizedBox(height: 5),
                                           Image.asset(
-                                            getWeatherAnimation(forecast.mainCondition),
+                                            getWeatherAnimation(
+                                              forecast.mainCondition,
+                                              sunrise: _weather?.sunrise,
+                                              sunset: _weather?.sunset,),
                                             width: 30),
                                           const SizedBox(height: 5),
                                           Text(
@@ -488,7 +521,7 @@ class _CityWeatherState extends State<CityWeather> {
                           mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                           children: <Widget>[
                             Container(
-                              width: isLandscape ? 375 : 175,
+                              width: isLandscape ? width * 0.46 : 175,
                               height: 105,
                               padding: const EdgeInsets.symmetric(vertical: 10),
                               decoration: ShapeDecoration(
@@ -548,7 +581,7 @@ class _CityWeatherState extends State<CityWeather> {
                             ),
                             const SizedBox(width: 5),
                             Container(
-                              width: isLandscape ? 375 : 175,
+                              width: isLandscape ? width * 0.46 : 175,
                               height: 105,
                               padding: const EdgeInsets.symmetric(vertical: 10),
                               decoration: ShapeDecoration(
@@ -621,7 +654,7 @@ class _CityWeatherState extends State<CityWeather> {
                                 mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                                 children: <Widget>[
                                   Container(
-                                    width: isLandscape ? 770 : 360,
+                                    width: isLandscape ? width * 0.95 : 360,
                                     height: 65,
                                     padding: const EdgeInsets.symmetric(vertical: 10),
                                     decoration: ShapeDecoration(
@@ -679,7 +712,7 @@ class _CityWeatherState extends State<CityWeather> {
                           mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                           children: <Widget>[
                             Container(
-                              width: isLandscape ? 375 : 175,
+                              width: isLandscape ? width * 0.46 : 175,
                               height: 65,
                               padding: const EdgeInsets.symmetric(vertical: 10),
                               decoration: ShapeDecoration(
@@ -697,7 +730,7 @@ class _CityWeatherState extends State<CityWeather> {
                                     style: TextStyle(fontSize: 15),
                                   ),
                                   Image.asset(
-                                    'assets/clear.png',
+                                    dayOrNight == 'day' ? 'assets/clear.png' : 'assets/night clear.png',                                    
                                     fit: BoxFit.contain,
                                     width: 35,
                                   ),
@@ -715,7 +748,7 @@ class _CityWeatherState extends State<CityWeather> {
                             _weather?.temperature != null &&
                             _weather?.humidity != null
                                 ? Container(
-                                    width: isLandscape ? 375 : 175,
+                                    width: isLandscape ? width * 0.46 : 175,
                                     height: 65,
                                     padding: const EdgeInsets.symmetric(vertical: 10),
                                     decoration: ShapeDecoration(
@@ -759,7 +792,7 @@ class _CityWeatherState extends State<CityWeather> {
                                 mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                                 children: <Widget>[
                                   Container(
-                                    width: isLandscape ? 770 : 360,
+                                    width: isLandscape ? width * 0.95 : 360,
                                     height: 65,
                                     padding: const EdgeInsets.symmetric(vertical: 10),
                                     decoration: ShapeDecoration(
@@ -817,7 +850,7 @@ class _CityWeatherState extends State<CityWeather> {
                           mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                           children: <Widget>[
                             Container(
-                              width: isLandscape ? 375 : 175,
+                              width: isLandscape ? width * 0.46 : 175,
                               height: 65,
                               padding: const EdgeInsets.symmetric(vertical: 10),
                               decoration: ShapeDecoration(
@@ -851,7 +884,7 @@ class _CityWeatherState extends State<CityWeather> {
                             ),
                             const SizedBox(width: 5),
                             Container(
-                              width: isLandscape ? 375 : 175,
+                              width: isLandscape ? width * 0.46 : 175,
                               height: 65,
                               padding: const EdgeInsets.symmetric(vertical: 10),
                               decoration: ShapeDecoration(
@@ -895,7 +928,7 @@ class _CityWeatherState extends State<CityWeather> {
                           mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                           children: <Widget>[
                             Container(
-                              width: isLandscape ? 770 : 360,
+                              width: isLandscape ? width * 0.95 : 360,
                               height: 65,
                               padding: const EdgeInsets.symmetric(vertical: 10),
                               decoration: ShapeDecoration(

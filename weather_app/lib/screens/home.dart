@@ -1,5 +1,8 @@
+import 'dart:async';
+import 'package:flutter/services.dart';
+import 'package:geolocator/geolocator.dart';
+import 'package:internet_connection_checker_plus/internet_connection_checker_plus.dart';
 import 'package:flutter/material.dart';
-import 'package:geocoding/geocoding.dart';
 import 'package:intl/intl.dart';
 import 'package:weather_app/main.dart';
 import 'package:weather_app/models/airQualityModel.dart';
@@ -21,6 +24,8 @@ class Home extends StatefulWidget {
 }
 
 class _HomeState extends State<Home> {
+  bool isConnected = false;
+  StreamSubscription? _internetConnectionStreamSubscription;
   final _WeatherService = WeatherService('252bb571d411f6016045c128fcd11393');
   Weather? _weather;
   List<Forecast>? _forecasts;
@@ -30,6 +35,109 @@ class _HomeState extends State<Home> {
   String? cityName;
   double? userLatitude;
   double? userLongitude;
+
+  @override
+  void initState() {
+    super.initState();
+    SystemChrome.setSystemUIOverlayStyle(
+      const SystemUiOverlayStyle(
+        statusBarColor: Colors.transparent,
+        statusBarIconBrightness: Brightness.dark,
+        statusBarBrightness: Brightness.light,
+      ),
+    );
+    _checkConnection();
+  }
+
+  @override
+  void dispose() {
+    _internetConnectionStreamSubscription?.cancel();
+    super.dispose();
+  }
+
+  void _checkConnection() async {
+    final hasConnection = await InternetConnection().hasInternetAccess;
+
+    if (hasConnection) {
+      setState(() => isConnected = true);
+      _requestLocationPermission();
+    } else {
+      setState(() => isConnected = false);
+      _showNoConnectionDialog();
+    }
+
+    _internetConnectionStreamSubscription =
+        InternetConnection().onStatusChange.listen((event) {
+      if (event == InternetStatus.connected && !isConnected) {
+        setState(() => isConnected = true);
+        _requestLocationPermission();
+      } else if (event == InternetStatus.disconnected) {
+        setState(() => isConnected = false);
+        _showNoConnectionDialog();
+      }
+    });
+  }
+
+  Future<void> _requestLocationPermission() async {
+    try {
+      LocationPermission permission = await Geolocator.checkPermission();
+
+      if (permission == LocationPermission.denied) {
+        permission = await Geolocator.requestPermission();
+      }
+      if (permission == LocationPermission.deniedForever) {
+        if (mounted) {
+          showDialog(
+            context: context,
+            builder: (BuildContext context) {
+              return AlertDialog(
+                title: const Text("Location Permission"),
+                content: const Text(
+                    "Weather app needs location permission to show your local weather."),
+                actions: [
+                  TextButton(
+                    onPressed: () {
+                      Navigator.of(context).pop();
+                    },
+                    child: const Text("Continue"),
+                  ),
+                ],
+              );
+            },
+          );
+        }
+      } else if (permission == LocationPermission.whileInUse ||
+          permission == LocationPermission.always) {
+        fetchWeather();
+      } else {
+        fetchWeather();
+      }
+    } catch (e) {
+      print('Error requesting location permission: $e');
+      fetchWeather();
+    }
+  }
+
+  void _showNoConnectionDialog() {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: const Text("No Internet Connection"),
+          content: const Text(
+              "Please check your internet connection and try again."),
+          actions: [
+            TextButton(
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+              child: const Text("Retry"),
+            ),
+          ],
+        );
+      },
+    );
+  }
 
   fetchWeather() async {
     try {
@@ -46,6 +154,8 @@ class _HomeState extends State<Home> {
         _WeatherService.fetchAirQuality(userLatitude!, userLongitude!),
         _WeatherService.fetchAirQualityForecast(userLatitude!, userLongitude!),
       ]);
+
+      if (!mounted) return;
       setState(() {
         aqiData = results[0] as AirQuality;
         airforecasts = results[1] as List<AirQualityForecast>;
@@ -54,15 +164,27 @@ class _HomeState extends State<Home> {
       setState(() {
         _weather = weather;
         _forecasts = weatherForecasts;
-        airQualityData = airforecasts as Future<List<AirQualityForecast>>;
+        airQualityData = Future.value(airforecasts);
       });
     } catch (e) {
       print(e);
     }
   }
 
-  String getWeatherAnimation(String? mainCondition) {
+  String getWeatherAnimation(String? mainCondition, {int? sunrise, int? sunset}) {
     if (mainCondition == null) return 'assets/clear.png';
+
+    if (mainCondition.toLowerCase() == 'clear') {
+      if (sunrise != null && sunset != null) {
+        final now = DateTime.now().toUtc().millisecondsSinceEpoch ~/ 1000;
+        if (now >= sunrise && now < sunset) {
+          return 'assets/clear.png';
+        } else {
+          return 'assets/night clear.png';
+        }
+      }
+      return 'assets/clear.png';
+    }
 
     switch (mainCondition.toLowerCase()) {
       case 'clouds':
@@ -81,8 +203,8 @@ class _HomeState extends State<Home> {
         return 'assets/shower.png';
       case 'thunderstorm':
         return 'assets/thunder rain.png';
-      case 'clear':
-        return 'assets/clear.png';
+      case 'snow':
+        return 'assets/snow.png';
       default:
         return 'assets/clear.png';
     }
@@ -111,12 +233,6 @@ class _HomeState extends State<Home> {
   }
 
   @override
-  void initState() {
-    super.initState();
-    fetchWeather();
-  }
-
-  @override
   Widget build(BuildContext context) {
     double width = ScreenSize.width(context);
     double height = ScreenSize.height(context);
@@ -129,6 +245,8 @@ class _HomeState extends State<Home> {
     var formatterTime = DateFormat('kk:mm');
     String actualDate = formatterDate.format(cityNow);
     String actualTime = formatterTime.format(cityNow);
+    var dayOrNight = (_weather != null && (nowUtc.millisecondsSinceEpoch ~/ 1000 >= _weather!.sunrise 
+      && nowUtc.millisecondsSinceEpoch ~/ 1000 < _weather!.sunset)) ? 'day' : 'night';
 
     return Scaffold(
       body: Container(
@@ -146,8 +264,20 @@ class _HomeState extends State<Home> {
                   ? Column(
                       children: [
                         Container(
-                          // height: isLandscape ? 950 : 800,
-                          height: isLandscape ? height * 1.15 : height * 1.05,
+                          height: isLandscape ? 
+                            (_weather?.mainCondition.toLowerCase() == 'rain' 
+                            || _weather?.mainCondition.toLowerCase() == 'thunderstorm'
+                            ? 920 : _weather?.mainCondition.toLowerCase() == 'drizzle' 
+                            ? 980 : _weather?.mainCondition.toLowerCase() == 'clouds' 
+                            ? 880 : _weather?.mainCondition.toLowerCase() == 'clear' 
+                            && dayOrNight == 'night' ? 950 : 910) 
+                              
+                            : _weather?.mainCondition.toLowerCase() == 'rain' 
+                            || _weather?.mainCondition.toLowerCase() == 'thunderstorm'
+                            ? 790 : _weather?.mainCondition.toLowerCase() == 'drizzle' 
+                            ? 850 : _weather?.mainCondition.toLowerCase() == 'clouds' 
+                            ? 750 : _weather?.mainCondition.toLowerCase() == 'clear' 
+                            && dayOrNight == 'night' ? 820 : 780,
                           width: double.infinity,
                           decoration: ShapeDecoration(
                             shape: const RoundedRectangleBorder(
@@ -234,6 +364,8 @@ class _HomeState extends State<Home> {
                               Image.asset(
                                 getWeatherAnimation(
                                   _weather?.mainCondition,
+                                  sunrise: _weather?.sunrise,
+                                  sunset: _weather?.sunset,
                                 ),
                                 width: isLandscape ? width * 0.3 : 200),
                               SizedBox(height: isLandscape ? height * 0.05 : 12),
@@ -394,6 +526,7 @@ class _HomeState extends State<Home> {
                                             context, MaterialPageRoute(
                                               builder: (context) => Forecasts(
                                                 forecasts: _forecasts,
+                                                time: dayOrNight,
                                               ),
                                             ),
                                           );
@@ -421,7 +554,7 @@ class _HomeState extends State<Home> {
                                     return Padding(
                                       padding: const EdgeInsets.symmetric(horizontal: 5),
                                       child: Container(
-                                        width: isLandscape ? 147 : 77,
+                                        width: isLandscape ? height * 0.36 : 77,
                                         height: 260,
                                         decoration: ShapeDecoration(
                                           color: Colors.white.withOpacity(0.5),
@@ -495,7 +628,7 @@ class _HomeState extends State<Home> {
                             mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                             children: <Widget>[
                               Container(
-                                width: isLandscape ? 375 : 175,
+                                width: isLandscape ? width * 0.46 : 175,
                                 height: 105,
                                 padding: const EdgeInsets.symmetric(vertical: 10),
                                 decoration: ShapeDecoration(
@@ -555,7 +688,7 @@ class _HomeState extends State<Home> {
                               ),
                               const SizedBox(width: 5),
                               Container(
-                                width: isLandscape ? 375 : 175,
+                                width: isLandscape ? width * 0.46 : 175,
                                 height: 105,
                                 padding: const EdgeInsets.symmetric(vertical: 10),
                                 decoration: ShapeDecoration(
@@ -628,7 +761,7 @@ class _HomeState extends State<Home> {
                                   mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                                   children: <Widget>[
                                     Container(
-                                      width: isLandscape ? 770 : 360,
+                                      width: isLandscape ? width * 0.95 : 360,
                                       height: 65,
                                       padding: const EdgeInsets.symmetric(vertical: 10),
                                       decoration: ShapeDecoration(
@@ -687,7 +820,7 @@ class _HomeState extends State<Home> {
                             mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                             children: <Widget>[
                               Container(
-                                width: isLandscape ? 375 : 175,
+                                width: isLandscape ? width * 0.46 : 175,
                                 height: 65,
                                 padding: const EdgeInsets.symmetric(vertical: 10),
                                 decoration: ShapeDecoration(
@@ -723,7 +856,7 @@ class _HomeState extends State<Home> {
                               _weather?.temperature != null &&
                               _weather?.humidity != null
                                   ? Container(
-                                      width: isLandscape ? 375 : 175,
+                                      width: isLandscape ? width * 0.46 : 175,
                                       height: 65,
                                       padding: const EdgeInsets.symmetric(vertical: 10),
                                       decoration: ShapeDecoration(
@@ -768,7 +901,7 @@ class _HomeState extends State<Home> {
                                   mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                                   children: <Widget>[
                                     Container(
-                                      width: isLandscape ? 770 : 360,
+                                      width: isLandscape ? width * 0.95 : 360,
                                       height: 65,
                                       padding: const EdgeInsets.symmetric(vertical: 10),
                                       decoration: ShapeDecoration(
@@ -827,7 +960,7 @@ class _HomeState extends State<Home> {
                             mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                             children: <Widget>[
                               Container(
-                                width: isLandscape ? 375 : 175,
+                                width: isLandscape ? width * 0.46 : 175,
                                 height: 65,
                                 padding: const EdgeInsets.symmetric(vertical: 10),
                                 decoration: ShapeDecoration(
@@ -861,7 +994,7 @@ class _HomeState extends State<Home> {
                               ),
                               const SizedBox(width: 5),
                               Container(
-                                width: isLandscape ? 375 : 175,
+                                width: isLandscape ? width * 0.46 : 175,
                                 height: 65,
                                 padding: const EdgeInsets.symmetric(vertical: 10),
                                 decoration: ShapeDecoration(
@@ -905,7 +1038,7 @@ class _HomeState extends State<Home> {
                             mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                             children: <Widget>[
                               Container(
-                                width: isLandscape ? 770 : 360,
+                                width: isLandscape ? width * 0.95 : 360,
                                 height: 65,
                                 padding: const EdgeInsets.symmetric(vertical: 10),
                                 decoration: ShapeDecoration(

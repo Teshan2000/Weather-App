@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:weather_app/main.dart';
 import 'package:weather_app/providers/weatherService.dart';
 import 'package:weather_app/models/weatherModel.dart';
 import 'package:weather_app/screens/cityWeather.dart';
@@ -12,12 +13,24 @@ class Locations extends StatefulWidget {
 
 class _LocationsState extends State<Locations> {
   final TextEditingController _cityController = TextEditingController();
-  final _WeatherService = WeatherService('c3281946b6139602ecabb86fd3e733c2');
+  final _WeatherService = WeatherService('252bb571d411f6016045c128fcd11393');
   List<String> _suggestions = [];
   List<Weather> _addedCitiesWeather = [];
 
-  String getWeatherAnimation(String? mainCondition) {
+  String getWeatherAnimation(String? mainCondition, {int? sunrise, int? sunset}) {
     if (mainCondition == null) return 'assets/clear.png';
+
+    if (mainCondition.toLowerCase() == 'clear') {
+      if (sunrise != null && sunset != null) {
+        final now = DateTime.now().toUtc().millisecondsSinceEpoch ~/ 1000;
+        if (now >= sunrise && now < sunset) {
+          return 'assets/clear.png';
+        } else {
+          return 'assets/night clear.png';
+        }
+      }
+      return 'assets/clear.png';
+    }
 
     switch (mainCondition.toLowerCase()) {
       case 'clouds':
@@ -36,8 +49,8 @@ class _LocationsState extends State<Locations> {
         return 'assets/shower.png';
       case 'thunderstorm':
         return 'assets/thunder rain.png';
-      case 'clear':
-        return 'assets/clear.png';
+      case 'snow':
+        return 'assets/snow.png';
       default:
         return 'assets/clear.png';
     }
@@ -54,11 +67,11 @@ class _LocationsState extends State<Locations> {
     List<String> suggestions = [
       'Colombo', 'Jaffna', 'Galle', 'Kandy',
       'Gampaha', 'Kalutara', 'Matara', 'Badulla',
-      'Ratnapura', 'Kegalle', 'Nuwara Eliya', 'Polonnarauwa',
+      'Ratnapura', 'Kegalle', 'Nuwara Eliya', 'Polonnaruwa',
       'Trincomalee', 'Batticaloa', 'Mannar', 'Puttalam',
       'Kurunegala', 'Vavuniya', 'Kilinochchi', 'Matale',
       'Hambantota', 'Ampara', 'Monaragala', 'Anuradhapura',
-      'Mullaittivu', 'New York', 'Chicago', 'Los Angeles',
+      'Cape Town', 'New York', 'Chicago', 'Los Angeles',
       'Dubai', 'Hong Kong', 'Shanghai', 'Melbourne',
       'Sydney', 'Moscow', 'Kuala Lumpur', 'Singapore',
       'Rio de Janeiro', 'Istanbul', 'Bangkok', 'Madrid',
@@ -95,6 +108,10 @@ class _LocationsState extends State<Locations> {
 
   @override
   Widget build(BuildContext context) {
+    double width = ScreenSize.width(context);
+    double height = ScreenSize.height(context);
+    bool isLandscape = ScreenSize.orientation(context);
+    
     return Scaffold(
       appBar: AppBar(
         elevation: 0,
@@ -116,8 +133,8 @@ class _LocationsState extends State<Locations> {
         ],
       ),
       body: Container(
-        width: MediaQuery.of(context).size.width,
-        height: MediaQuery.of(context).size.height,
+        width: width,
+        height: height,
         decoration: const BoxDecoration(
           image: DecorationImage(
             image: AssetImage('assets/background.png'),
@@ -192,9 +209,7 @@ class _LocationsState extends State<Locations> {
                       ),
                     ),
                   ),
-                  const SizedBox(
-                    height: 10,
-                  ),
+                  SizedBox(height: isLandscape ? height * 0.05 : 10),
                   ListView.builder(
                     shrinkWrap: true,
                     physics: const NeverScrollableScrollPhysics(),
@@ -208,9 +223,7 @@ class _LocationsState extends State<Locations> {
                       );
                     },
                   ),
-                  const SizedBox(
-                    height: 20,
-                  ),
+                  SizedBox(height: isLandscape ? height * 0.05 : 8),
                   if (_addedCitiesWeather.isNotEmpty)
                     ListView.builder(
                       shrinkWrap: true,
@@ -237,12 +250,22 @@ class _LocationsState extends State<Locations> {
                                     child: Row(
                                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                                       children: [
-                                        Text(
+                                        isLandscape ? Text(
                                           weather.cityName,
                                           textAlign: TextAlign.center,
                                           style: const TextStyle(
                                             fontSize: 20,
                                             color: Colors.black),
+                                        ) : Expanded(
+                                          child: Text(
+                                            weather.cityName,
+                                            textAlign: TextAlign.center,
+                                            overflow: TextOverflow.ellipsis,
+                                            maxLines: 1,
+                                            style: const TextStyle(
+                                              fontSize: 20,
+                                              color: Colors.black),
+                                          ),
                                         ),
                                         SizedBox(
                                           width: 20,
@@ -260,7 +283,10 @@ class _LocationsState extends State<Locations> {
                                           width: 20,
                                         ),
                                         Image.asset(
-                                          getWeatherAnimation(weather.mainCondition),
+                                          getWeatherAnimation(
+                                            weather.mainCondition,
+                                            sunrise: weather.sunrise,
+                                            sunset: weather.sunset,),
                                           width: 30),
                                         SizedBox(
                                           width: 20,

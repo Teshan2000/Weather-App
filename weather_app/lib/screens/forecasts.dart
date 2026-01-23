@@ -6,7 +6,8 @@ import 'package:weather_app/screens/splash.dart';
 
 class Forecasts extends StatefulWidget {
   final List<Forecast>? forecasts;
-  const Forecasts({super.key, required this.forecasts});
+  final String time;
+  const Forecasts({super.key, required this.forecasts, required this.time});
 
   @override
   State<Forecasts> createState() => _ForecastsState();
@@ -19,6 +20,14 @@ class _ForecastsState extends State<Forecasts> {
 
   String getWeatherAnimation(String? mainCondition) {
     if (mainCondition == null) return 'assets/clear.png';
+
+    if (mainCondition.toLowerCase() == 'clear') {
+      if (widget.time == 'day') {
+        return 'assets/clear.png';
+      } else {
+        return 'assets/night clear.png';
+      }
+    }
 
     switch (mainCondition.toLowerCase()) {
       case 'clouds':
@@ -37,8 +46,8 @@ class _ForecastsState extends State<Forecasts> {
         return 'assets/shower.png';
       case 'thunderstorm':
         return 'assets/thunder rain.png';
-      case 'clear':
-        return 'assets/clear.png';
+      case 'snow':
+        return 'assets/snow.png';
       default:
         return 'assets/clear.png';
     }
@@ -137,9 +146,9 @@ class _ForecastsState extends State<Forecasts> {
                                       child: Padding(
                                       padding: EdgeInsets.symmetric(
                                         horizontal: 20,
-                                        vertical: (
-                                          forecast.mainCondition?.toLowerCase().contains('drizzle') ?? false) ? 0 
-                                            : ((forecast.mainCondition?.toLowerCase().contains('rain') ?? false) ? 15 : 25)),
+                                        vertical: forecast.mainCondition.toLowerCase() == 'drizzle' ? 0 
+                                          : forecast.mainCondition.toLowerCase() == 'rain' || forecast.mainCondition.toLowerCase() == 'snow' ? 15 
+                                          : forecast.mainCondition.toLowerCase() == 'clear' && widget.time == 'night' ? 12 : 25),
                                       child: Column(
                                         children: [
                                           Expanded(
