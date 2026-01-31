@@ -26,7 +26,7 @@ class Home extends StatefulWidget {
 class _HomeState extends State<Home> {
   bool isConnected = false;
   StreamSubscription? _internetConnectionStreamSubscription;
-  final _WeatherService = WeatherService('252bb571d411f6016045c128fcd11393');
+  final _WeatherService = WeatherService();
   Weather? _weather;
   List<Forecast>? _forecasts;
   AirQuality? aqiData;
@@ -63,7 +63,9 @@ class _HomeState extends State<Home> {
       _requestLocationPermission();
     } else {
       setState(() => isConnected = false);
-      _showNoConnectionDialog();
+      ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text("Failed to load weather. Check GPS/Internet.")),
+        );
     }
 
     _internetConnectionStreamSubscription =
@@ -73,7 +75,9 @@ class _HomeState extends State<Home> {
         _requestLocationPermission();
       } else if (event == InternetStatus.disconnected) {
         setState(() => isConnected = false);
-        _showNoConnectionDialog();
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text("Failed to load weather. Check GPS/Internet.")),
+        );
       }
     });
   }
@@ -118,56 +122,38 @@ class _HomeState extends State<Home> {
     }
   }
 
-  void _showNoConnectionDialog() {
-    showDialog(
-      context: context,
-      builder: (BuildContext context) {
-        return AlertDialog(
-          title: const Text("No Internet Connection"),
-          content: const Text(
-              "Please check your internet connection and try again."),
-          actions: [
-            TextButton(
-              onPressed: () {
-                Navigator.of(context).pop();
-              },
-              child: const Text("Retry"),
-            ),
-          ],
-        );
-      },
-    );
-  }
-
   fetchWeather() async {
     try {
-      final locationData = await _WeatherService.getCurrentCityWithPosition();
-      cityName = locationData['city'];
-      userLatitude = locationData['latitude'];
-      userLongitude = locationData['longitude'];
-
-      final weather = await _WeatherService.getWeather(cityName!);
-      var weatherForecasts =
-          await _WeatherService.getFiveDayForecast(cityName!);
+      Position position = await _WeatherService.getPreciseLocation();
+      userLatitude = position.latitude;
+      userLongitude = position.longitude;
 
       final results = await Future.wait([
+        _WeatherService.getWeatherByCoords(userLatitude!, userLongitude!),
+        _WeatherService.getFiveDayForecastByCoords(userLatitude!, userLongitude!),
         _WeatherService.fetchAirQuality(userLatitude!, userLongitude!),
         _WeatherService.fetchAirQualityForecast(userLatitude!, userLongitude!),
       ]);
 
       if (!mounted) return;
-      setState(() {
-        aqiData = results[0] as AirQuality;
-        airforecasts = results[1] as List<AirQualityForecast>;
-      });
 
       setState(() {
-        _weather = weather;
-        _forecasts = weatherForecasts;
+        _weather = results[0] as Weather;
+        _forecasts = results[1] as List<Forecast>;
+        aqiData = results[2] as AirQuality;
+        airforecasts = results[3] as List<AirQualityForecast>;
         airQualityData = Future.value(airforecasts);
+        cityName = _weather?.cityName; 
       });
+
     } catch (e) {
-      print(e);
+      print('Error fetching weather: $e');
+
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text("Failed to load weather. Check GPS/Internet.")),
+        );
+      }
     }
   }
 
@@ -264,20 +250,27 @@ class _HomeState extends State<Home> {
                   ? Column(
                       children: [
                         Container(
+                          padding: EdgeInsets.only(top: 10),
                           height: isLandscape ? 
                             (_weather?.mainCondition.toLowerCase() == 'rain' 
                             || _weather?.mainCondition.toLowerCase() == 'thunderstorm'
-                            ? 920 : _weather?.mainCondition.toLowerCase() == 'drizzle' 
-                            ? 980 : _weather?.mainCondition.toLowerCase() == 'clouds' 
-                            ? 880 : _weather?.mainCondition.toLowerCase() == 'clear' 
-                            && dayOrNight == 'night' ? 950 : 910) 
+                            ? 940 : _weather?.mainCondition.toLowerCase() == 'shower' 
+                            || _weather?.mainCondition.toLowerCase() == 'snow'
+                            ? 930 : _weather?.mainCondition.toLowerCase() == 'drizzle' 
+                            ? 890 : _weather?.mainCondition.toLowerCase() == 'clouds' 
+                            ? 890 : _weather?.mainCondition.toLowerCase() == 'clear' && dayOrNight == 'night' 
+                            ? 960 : _weather?.mainCondition.toLowerCase() == 'clear' && dayOrNight == 'day' 
+                            ? 930 : 920) 
                               
                             : _weather?.mainCondition.toLowerCase() == 'rain' 
                             || _weather?.mainCondition.toLowerCase() == 'thunderstorm'
+                            ? 800 : _weather?.mainCondition.toLowerCase() == 'shower' 
+                            || _weather?.mainCondition.toLowerCase() == 'snow'
                             ? 790 : _weather?.mainCondition.toLowerCase() == 'drizzle' 
                             ? 850 : _weather?.mainCondition.toLowerCase() == 'clouds' 
-                            ? 750 : _weather?.mainCondition.toLowerCase() == 'clear' 
-                            && dayOrNight == 'night' ? 820 : 780,
+                            ? 760 : _weather?.mainCondition.toLowerCase() == 'clear' && dayOrNight == 'night' 
+                            ? 820 : _weather?.mainCondition.toLowerCase() == 'clear' && dayOrNight == 'day' 
+                            ? 790 : 780,
                           width: double.infinity,
                           decoration: ShapeDecoration(
                             shape: const RoundedRectangleBorder(

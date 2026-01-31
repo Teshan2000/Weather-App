@@ -13,7 +13,7 @@ class Locations extends StatefulWidget {
 
 class _LocationsState extends State<Locations> {
   final TextEditingController _cityController = TextEditingController();
-  final _WeatherService = WeatherService('252bb571d411f6016045c128fcd11393');
+  final _WeatherService = WeatherService();
   List<String> _suggestions = [];
   List<Weather> _addedCitiesWeather = [];
 

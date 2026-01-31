@@ -22,7 +22,7 @@ class CityWeather extends StatefulWidget {
 }
 
 class _CityWeatherState extends State<CityWeather> {
-  final _WeatherService = WeatherService('252bb571d411f6016045c128fcd11393');
+  final _WeatherService = WeatherService();
   Weather? _weather;
   List<Forecast>? _forecasts;
   AirQuality? aqiData;
@@ -161,20 +161,27 @@ class _CityWeatherState extends State<CityWeather> {
                 ? Column(
                     children: [
                       Container(
+                        padding: EdgeInsets.only(top: 10),
                         height: isLandscape ? 
                         (widget.weather.mainCondition.toLowerCase() == 'rain' 
                           || widget.weather.mainCondition.toLowerCase() == 'thunderstorm'
-                          ? 920 : widget.weather.mainCondition.toLowerCase() == 'drizzle' 
-                          ? 980 : widget.weather.mainCondition.toLowerCase() == 'clouds' 
-                          ? 880 : widget.weather.mainCondition.toLowerCase() == 'clear' 
-                          && dayOrNight == 'night' ? 950 : 910) 
+                          ? 940 : widget.weather.mainCondition.toLowerCase() == 'shower' 
+                          || widget.weather.mainCondition.toLowerCase() == 'snow'
+                          ? 930 : widget.weather.mainCondition.toLowerCase() == 'drizzle' 
+                          ? 890 : widget.weather.mainCondition.toLowerCase() == 'clouds' 
+                          ? 890 : widget.weather.mainCondition.toLowerCase() == 'clear' && dayOrNight == 'night' 
+                          ? 960 : widget.weather.mainCondition.toLowerCase() == 'clear' && dayOrNight == 'day' 
+                          ? 930 : 920) 
                           
                           : widget.weather.mainCondition.toLowerCase() == 'rain' 
                           || widget.weather.mainCondition.toLowerCase() == 'thunderstorm'
+                          ? 800 : widget.weather.mainCondition.toLowerCase() == 'shower' 
+                          || widget.weather.mainCondition.toLowerCase() == 'snow'
                           ? 790 : widget.weather.mainCondition.toLowerCase() == 'drizzle' 
                           ? 850 : widget.weather.mainCondition.toLowerCase() == 'clouds' 
-                          ? 750 : widget.weather.mainCondition.toLowerCase() == 'clear' 
-                          && dayOrNight == 'night' ? 820 : 780,
+                          ? 760 : widget.weather.mainCondition.toLowerCase() == 'clear' && dayOrNight == 'night' 
+                          ? 820 : widget.weather.mainCondition.toLowerCase() == 'clear' && dayOrNight == 'day' 
+                          ? 790 : 780,
                         width: double.infinity,
                         decoration: ShapeDecoration(
                           shape: const RoundedRectangleBorder(
@@ -444,7 +451,7 @@ class _CityWeatherState extends State<CityWeather> {
                                   return Padding(
                                     padding: const EdgeInsets.symmetric(horizontal: 5),
                                     child: Container(
-                                      width: isLandscape ? 147 : 77,
+                                      width: isLandscape ? height * 0.36 : 77,
                                       height: 260,
                                       decoration: ShapeDecoration(
                                         color: Colors.white.withOpacity(0.5),
@@ -730,7 +737,7 @@ class _CityWeatherState extends State<CityWeather> {
                                     style: TextStyle(fontSize: 15),
                                   ),
                                   Image.asset(
-                                    dayOrNight == 'day' ? 'assets/clear.png' : 'assets/night clear.png',                                    
+                                    dayOrNight == 'day' ? 'assets/clear.png' : 'assets/night clear.png',
                                     fit: BoxFit.contain,
                                     width: 35,
                                   ),

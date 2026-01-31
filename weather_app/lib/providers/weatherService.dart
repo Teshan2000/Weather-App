@@ -10,9 +10,9 @@ import 'package:weather_app/models/weatherModel.dart';
 
 class WeatherService {
   static const Base_URL = "http://api.openweathermap.org/data/2.5";
-  final String apiKey;
+  final String apiKey = "252bb571d411f6016045c128fcd11393";
 
-  WeatherService(this.apiKey);
+  // WeatherService(this.apiKey);
 
   Future<Weather> getWeather(String cityName) async {
     final response = await http.get(
@@ -23,6 +23,25 @@ class WeatherService {
     } else {
       throw Exception('Failed to fetch weather data');
     }
+  }
+
+  Future<Weather> getWeatherByCoords(double lat, double lon) async {
+    final response = await http.get(
+        Uri.parse('$Base_URL/weather?lat=$lat&lon=$lon&appid=$apiKey&units=metric'));
+
+    if (response.statusCode == 200) {
+      return Weather.fromJson(jsonDecode(response.body));
+    } else {
+      throw Exception('Failed to fetch weather data by coordinates');
+    }
+  }
+
+  Future<Position> getPreciseLocation() async {
+    return await Geolocator.getCurrentPosition(
+      desiredAccuracy: LocationAccuracy.medium,
+    ).timeout(const Duration(seconds: 10), onTimeout: () {
+      return Geolocator.getLastKnownPosition().then((pos) => pos!);
+    });
   }
 
   Future<String> getCurrentCity() async {
@@ -79,6 +98,28 @@ class WeatherService {
       return dailyForecasts;
     } else {
       throw Exception('Failed to fetch 5-day forecast');
+    }
+  }
+
+  Future<List<Forecast>> getFiveDayForecastByCoords(double lat, double lon) async {
+    final response = await http.get(
+        Uri.parse('$Base_URL/forecast?lat=$lat&lon=$lon&appid=$apiKey&units=metric'));
+
+    if (response.statusCode == 200) {
+      List<dynamic> forecasts = jsonDecode(response.body)['list'];
+      List<Forecast> dailyForecasts = [];
+      DateTime? lastDate;
+
+      for (var forecast in forecasts) {
+        DateTime dateTime = DateTime.parse(forecast['dt_txt']);
+        if (lastDate == null || dateTime.day != lastDate.day) {
+          dailyForecasts.add(Forecast.fromJson(forecast));
+          lastDate = dateTime;
+        }
+      }
+      return dailyForecasts;
+    } else {
+      throw Exception('Failed to fetch forecast by coordinates');
     }
   }
 

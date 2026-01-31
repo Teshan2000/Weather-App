@@ -24,8 +24,8 @@ class WeatherMap extends StatefulWidget {
 }
 
 class _WeatherMapState extends State<WeatherMap> {
-  final String apiKey = '252bb571d411f6016045c128fcd11393';
-  final _WeatherService = WeatherService('252bb571d411f6016045c128fcd11393');
+  final String apiKey = WeatherService().apiKey;
+  final _WeatherService = WeatherService();
   Weather? _weather;
   AirQuality? aqiData;
   final MapController _mapController = MapController();
