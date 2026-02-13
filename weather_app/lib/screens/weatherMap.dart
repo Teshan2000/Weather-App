@@ -154,6 +154,10 @@ class _WeatherMapState extends State<WeatherMap> {
                         urlTemplate:
                             'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',
                         subdomains: ['a', 'b', 'c'],
+                        userAgentPackageName: 'com.yourname.weather_app', 
+                        additionalOptions: {
+                          'accessToken': WeatherService().apiKey,
+                        },
                       ),
                       if (_showClouds)
                         TileLayer(

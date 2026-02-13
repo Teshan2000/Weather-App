@@ -54,7 +54,7 @@ class _ForecastsState extends State<Forecasts> {
   }
 
   String rainPrecipitation(double? pop) {
-    if ((pop! * 100).round() <= 40) {
+    if (pop == null || (pop * 100).round() <= 40) {
       return "assets/rainbow.png";
     } else {
       return "assets/umbrella.png";
@@ -272,15 +272,18 @@ class _ForecastsState extends State<Forecasts> {
                                                   children: [
                                                     const Spacer(),
                                                     Image.asset(
-                                                      rainPrecipitation(forecast.pop),
+                                                      widget.forecasts![index].mainCondition.toLowerCase() == 'snow' 
+                                                      ? 'assets/snowflake.png' : rainPrecipitation(forecast.pop),
                                                       fit: BoxFit.fitWidth,
-                                                      height: 35,
+                                                      height: rainPrecipitation(forecast.pop) == "assets/umbrella.png" ? 42: 35,
                                                     ),
                                                     isLandscape ? SizedBox(width: 10) : const Spacer(),
                                                     Text(
-                                                      forecast.pop != null
-                                                        ? "${(forecast.pop! * 100).round()}% chance of rain today"
-                                                        : "No rain expected today",
+                                                      (forecast.pop == null || (forecast.pop! * 100).round() == 0)
+                                                        ? widget.forecasts![index].mainCondition.toLowerCase() == 'snow' 
+                                                          ? "No snow expected today" : "No rain expected today"
+                                                        : widget.forecasts![index].mainCondition.toLowerCase() == 'snow' 
+                                                          ? "${(forecast.pop! * 100).round()}% chance of snow today" : "${(forecast.pop! * 100).round()}% chance of rain today",
                                                       textAlign: TextAlign.center,
                                                       style: TextStyle(
                                                         fontSize: 16,

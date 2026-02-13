@@ -179,6 +179,7 @@ class _HomeState extends State<Home> {
       case 'smoke':
       case 'haze':
       case 'dust':
+      case 'sand':
       case 'fog':
         return 'assets/mist.png';
       case 'rain':
@@ -478,15 +479,15 @@ class _HomeState extends State<Home> {
                                                 style: TextStyle(fontSize: 15),
                                               ),
                                               Image.asset(
-                                                'assets/shower.png',
+                                                _weather?.mainCondition.toLowerCase() == 'snow' ? 'assets/snow.png' :'assets/shower.png',
                                                 fit: BoxFit.contain,
                                                 width: 35,
                                               ),
+                                              const SizedBox(height: 5),
                                               Text(
-                                                _weather?.precipitation == 0.0 ||
-                                                _weather?.precipitation == null
-                                                  ? "No rain"
-                                                  : "${(_weather?.precipitation)?.round()} mm",
+                                                (_forecasts![0].pop == null || (_forecasts![0].pop! * 100).round() == 0)
+                                                  ? _weather?.mainCondition.toLowerCase() == 'snow' ? "No snow" : "No rain"
+                                                  : "${(_forecasts![0].pop! * 100).round()}%",
                                                 style: TextStyle(
                                                   fontSize: 15,
                                                   color: Colors.blue,
